@@ -14,7 +14,9 @@ import io.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.routing.Router;
+import sgw.core.services.RpcInvoker;
 import sgw.core.services.RpcInvokerDef;
+import sgw.core.services.RpcInvokerManager;
 
 import java.net.URI;
 
@@ -25,10 +27,15 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter{
     private boolean readingChunks;
     private HttpRequest request;
     private Router router;
+    private RpcInvokerManager invokerManager;
     private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
 
-    public void setRouter(Router router) {
+    public void useRouter(Router router) {
         this.router = router;
+    }
+
+    public void useInvokerManager(RpcInvokerManager invokerManager) {
+        this.invokerManager = invokerManager;
     }
 
     @Override
@@ -47,8 +54,13 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter{
             logger.info("HttpRequest Method : {}", method);
             logger.info("HttpRequest URI: {}", uri.toString());
 
+            // rpc invoker can be determined as soon as we get HttpRequestDef
+            // no need to wait for the full request body arrives.
             HttpRequestDef httpRequestDef = new HttpRequestDef(request);
             RpcInvokerDef invokerDef = router.getRpcInvokerDef(httpRequestDef);
+            // get remote service
+            RpcInvoker invoker = invokerManager.find(invokerDef);
+
         }
 
         if (msg instanceof HttpRequest) {

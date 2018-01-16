@@ -45,7 +45,7 @@ public class RouterPropertiesFileCompiler implements RouterGenerator{
     private File routerFile;
     private HashMap<Tuple, Tuple[]> hashMap;
 
-    private RouterPropertiesFileCompiler(File file) {
+    public RouterPropertiesFileCompiler(File file) {
         routerFile = file;
         hashMap = new HashMap<>();
     }
@@ -124,22 +124,4 @@ public class RouterPropertiesFileCompiler implements RouterGenerator{
         return true;
     }
 
-    public static class Factory implements  RouterGeneratorFactory {
-
-        private File routerFile;
-        private static final String defaultFilePath = "src/main/resources/routing.properties";
-
-        public Factory() {
-            this(defaultFilePath);
-        }
-
-        public Factory(String filePath) {
-            routerFile = new File(filePath);
-        }
-
-        @Override
-        public RouterPropertiesFileCompiler create(){
-            return new RouterPropertiesFileCompiler(routerFile);
-        }
-    }
 }

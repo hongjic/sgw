@@ -1,63 +1,67 @@
 package sgw;
 
-public class NettyGatewayServerConfig {
+import sgw.core.routing.RouterDataSource;
 
-    public static final NettyGatewayServerConfig DEFAULT;
+import java.util.HashMap;
+
+public class NettyGatewayServerConfig extends HashMap<String, Object>{
+
+    private static final String PORT = "port";
+    private static final String ROUTER_DATA_SOURCE = "routerDataSource";
+    private static final String THREAD_POOL_STRATEGY = "threadPoolStrategy";
+
     private static final int defaultPort = 8080;
+    private static final String defaultRouterPropertiesFilePath = "src/main/resources/routing.properties";
+
+    public static NettyGatewayServerConfig DEBUG;
 
     static {
-        DEFAULT = new NettyGatewayServerConfig(ThreadPoolStrategy.SINGLE_THREAD,
-                0, 0);
+        DEBUG = new NettyGatewayServerConfig();
+        DEBUG.put(THREAD_POOL_STRATEGY, new ThreadPoolStrategy(ThreadPoolStrategy.SINGLE_THREAD, 0, 0));
+        DEBUG.put(PORT, defaultPort);
+
+        RouterDataSource source = new RouterDataSource(RouterDataSource.Type.PROPERTIES_FILE);
+        source.setPropertiesFilePath(defaultRouterPropertiesFilePath);
+        DEBUG.put(ROUTER_DATA_SOURCE, source);
     }
 
-    private ThreadPoolStrategy tpStrategy;
-    private int wThreads;
-    private int bThreads;
-    private int port;
-
-    public NettyGatewayServerConfig(ThreadPoolStrategy strategy, int workerThreads, int backendThreads) {
-        this(strategy, workerThreads, backendThreads, defaultPort);
-    }
-
-    /**
-     *
-     * @param workerThreads only necessary when using multi_worker or multi_worker_and_executor strategy
-     * @param backendThreads only necessary when using multi_worker_and_executor strategy
-     */
-    public NettyGatewayServerConfig(ThreadPoolStrategy strategy, int workerThreads, int backendThreads, int port) {
-        tpStrategy = strategy;
-        wThreads = 1; bThreads = 1; wThreads = 1;
-
-        if (strategy == ThreadPoolStrategy.MULTI_WORKERS) {
-            wThreads = workerThreads;
-            bThreads = workerThreads;
-        }
-        if (strategy == ThreadPoolStrategy.MULTI_WORKERS_AND_BACKENDS) {
-            wThreads = workerThreads;
-            bThreads = backendThreads;
-        }
-
-        this.port = port;
+    public NettyGatewayServerConfig() {
+        super();
     }
 
     public boolean isSingleThread() {
-        return tpStrategy == ThreadPoolStrategy.SINGLE_THREAD;
+        return ((ThreadPoolStrategy) get(THREAD_POOL_STRATEGY)).isSingleThread();
     }
 
     public boolean isMultiWorkers() {
-        return tpStrategy == ThreadPoolStrategy.MULTI_WORKERS;
+        return ((ThreadPoolStrategy) get(THREAD_POOL_STRATEGY)).isMultiWorkers();
     }
 
     public int getWorkerThreads() {
-        return wThreads;
+        return ((ThreadPoolStrategy) get(THREAD_POOL_STRATEGY)).getWorkerThreads();
     }
 
     public int getBackendThreads() {
-        return bThreads;
+        return ((ThreadPoolStrategy) get(THREAD_POOL_STRATEGY)).getBackendThreads();
+    }
+
+    public void setThreadPoolStrategy(ThreadPoolStrategy strategy) {
+        put(THREAD_POOL_STRATEGY, strategy);
     }
 
     public int getPort() {
-        return port;
+        return (int) get(PORT);
     }
 
+    public void setPort(int port) {
+        put(PORT, port);
+    }
+
+    public void setRouterDataSource(RouterDataSource source) {
+        put(ROUTER_DATA_SOURCE, source);
+    }
+
+    public RouterDataSource getRouterDataSource() {
+        return (RouterDataSource) get(ROUTER_DATA_SOURCE);
+    }
 }

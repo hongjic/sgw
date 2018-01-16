@@ -1,11 +1,11 @@
 package sgw.core.services;
 
-public interface RpcInvokerGenerator {
+public interface RpcInvokerManager {
 
     /**
      *
      * @param invokerDef a definition of a RPC call
      * @return a RpcInvoker instance
      */
-    RpcInvoker generate(RpcInvokerDef invokerDef);
+    RpcInvoker find(RpcInvokerDef invokerDef);
 }

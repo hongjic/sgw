@@ -1,10 +1,7 @@
 import io.netty.handler.codec.http.HttpMethod;
 import org.junit.Test;
 import sgw.core.HttpRequestDef;
-import sgw.core.routing.Router;
-import sgw.core.routing.RouterPropertiesFileCompiler;
-import sgw.core.routing.RouterGenerator;
-import sgw.core.routing.RouterGeneratorFactory;
+import sgw.core.routing.*;
 import sgw.core.services.RpcInvokerDef;
 
 import static org.junit.Assert.assertEquals;
@@ -15,7 +12,9 @@ public class RouterPropertiesFileCompilerTest {
 
     @Test
     public void testCompile() {
-        RouterGeneratorFactory factory = new RouterPropertiesFileCompiler.Factory(filepath);
+        RouterDataSource source = new RouterDataSource(RouterDataSource.Type.PROPERTIES_FILE);
+        source.setPropertiesFilePath(filepath);
+        RouterGeneratorFactory factory = new RouterGeneratorFactory(source);
         RouterGenerator compiler = factory.create();
         Router router = null;
         try {
