@@ -10,9 +10,11 @@ public class Router {
     private static Router router;
 
     private HashMap<HttpRequestDef, RpcInvokerDef> mapping;
-
+    private boolean initialized;
+    
     public Router() {
         mapping = new HashMap<>();
+        initialized = false;
     }
 
     public RpcInvokerDef getRpcInvokerDef(HttpRequestDef reqDef) {
@@ -21,6 +23,14 @@ public class Router {
 
     public RpcInvokerDef putRouting(HttpRequestDef reqDef, RpcInvokerDef invokerDef) {
         return mapping.put(reqDef, invokerDef);
+    }
+
+    public boolean isInitialized() {
+        return initialized;
+    }
+
+    public void initialized() {
+        initialized = true;
     }
 
 }

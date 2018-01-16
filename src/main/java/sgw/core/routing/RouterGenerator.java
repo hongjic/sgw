@@ -6,5 +6,5 @@ public interface RouterGenerator {
      *
      * @return a generated Router.
      */
-    Router generate();
+    Router generate() throws Exception;
 }

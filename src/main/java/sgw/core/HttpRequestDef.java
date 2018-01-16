@@ -12,9 +12,9 @@ public class HttpRequestDef {
         this(request.method(), request.uri());
     }
 
-    public HttpRequestDef(HttpMethod m, String u) {
-        httpMethod = m;
-        uri = u;
+    public HttpRequestDef(HttpMethod method, String uri) {
+        httpMethod = method;
+        this.uri = uri;
     }
 
     @Override
@@ -30,5 +30,10 @@ public class HttpRequestDef {
         if (other.httpMethod.equals(httpMethod) && other.uri.equals(uri))
             return true;
         return false;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[method: %s, uri: %s]", httpMethod, uri);
     }
 }

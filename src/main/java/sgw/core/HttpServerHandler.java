@@ -24,8 +24,12 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter{
     private HttpPostRequestDecoder postDecoder;
     private boolean readingChunks;
     private HttpRequest request;
-    private Router router = new Router.Factory().createTestRouter();
+    private Router router;
     private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
+
+    public void setRouter(Router router) {
+        this.router = router;
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -94,6 +98,12 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter{
         ctx.channel().flush();
         ctx.flush();
     }
+
+//    @Override
+//    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+//        cause.printStackTrace();
+//        ctx.fireExceptionCaught(cause);
+//    }
 
     private void reset() {
         postDecoder.destroy();
