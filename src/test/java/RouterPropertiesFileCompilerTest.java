@@ -27,6 +27,7 @@ public class RouterPropertiesFileCompilerTest {
 
         assertEquals(invokerDef.getServiceName(), "demoservice");
         assertEquals(invokerDef.getMethodName(), "test");
-        assertEquals(invokerDef.getConvertor(), "StringPasser");
+        assertEquals(invokerDef.getParamConvertor(), "HttpBodyToString");
+        assertEquals(invokerDef.getResultConvertor(), "StringToHttpResponse");
     }
 }

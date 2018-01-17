@@ -12,10 +12,11 @@ import java.util.*;
 
 public class RouterPropertiesFileCompiler implements RouterGenerator{
 
-    private static final int NUM_KV = 3;
+    private static final int NUM_KV = 4;
     private static final int METHOD = 0;
     private static final int URI = 1;
-    private static final int CONVERTOR = 2;
+    private static final int PARAM_CONVERTOR = 2;
+    private static final int RESULT_CONVERTOR = 3;
 
     private static final class Tuple {
         final String a, b;
@@ -103,15 +104,19 @@ public class RouterPropertiesFileCompiler implements RouterGenerator{
         else if (k.equals("uri")) {
             pairs[URI] = t2;
         }
-        else if (k.equals("convertor")) {
-            pairs[CONVERTOR] = t2;
+        else if (k.equals("param_convertor")) {
+            pairs[PARAM_CONVERTOR] = t2;
+        }
+        else if (k.equals("result_convertor")) {
+            pairs[RESULT_CONVERTOR] = t2;
         }
 
         // if the current `pairs` is full, convert to HttpRequestDef and RpcInvokerDef
         if (oneRouteFinished(pairs)) {
             HttpMethod method = HttpMethod.valueOf(pairs[METHOD].b);
             HttpRequestDef reqDef = new HttpRequestDef(method, pairs[URI].b);
-            RpcInvokerDef invokerDef = new RpcInvokerDef(serviceName, methodName, pairs[CONVERTOR].b);
+            RpcInvokerDef invokerDef = new RpcInvokerDef(serviceName, methodName,
+                    pairs[PARAM_CONVERTOR].b, pairs[RESULT_CONVERTOR].b);
             hashMap.remove(t1);
             router.putRouting(reqDef, invokerDef);
         }

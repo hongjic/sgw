@@ -4,12 +4,14 @@ public class RpcInvokerDef {
 
     private final String serviceName;
     private final String methodName;
-    private final String convertor;
+    private final String paramConvertor;
+    private final String resultConvertor;
 
-    public RpcInvokerDef(String serviceName, String methodName, String convertor) {
+    public RpcInvokerDef(String serviceName, String methodName, String paramConvertor, String resultConvertor) {
         this.serviceName = serviceName;
         this.methodName = methodName;
-        this.convertor = convertor;
+        this.paramConvertor = paramConvertor;
+        this.resultConvertor = resultConvertor;
     }
 
     public String getServiceName() {
@@ -20,13 +22,17 @@ public class RpcInvokerDef {
         return methodName;
     }
 
-    public String getConvertor() {
-        return convertor;
+    public String getParamConvertor() {
+        return paramConvertor;
+    }
+
+    public String getResultConvertor() {
+        return resultConvertor;
     }
 
     @Override
     public String toString() {
-        return String.format("[serviceName: %s, methodName: %s, convertor: %s",
-                serviceName, methodName, convertor);
+        return String.format("[serviceName: %s, methodName: %s, paramConvertor: %s, resultConvertor",
+                serviceName, methodName, paramConvertor, resultConvertor);
     }
 }

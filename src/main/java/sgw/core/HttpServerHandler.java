@@ -37,7 +37,6 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter{
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        ctx.channel().write("aa");
         logger.info(msg.getClass().getName());
         /**
          * msg types:
@@ -103,17 +102,10 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter{
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+    public void channelReadComplete(ChannelHandlerContext ctx) {
         logger.info("Channel read complete.");
-        ctx.channel().flush();
         ctx.flush();
     }
-
-//    @Override
-//    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-//        cause.printStackTrace();
-//        ctx.fireExceptionCaught(cause);
-//    }
 
     private void reset() {
         postDecoder.destroy();
