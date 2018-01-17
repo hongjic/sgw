@@ -24,9 +24,14 @@ public class NettyGatewayServer {
      *
      * @param config configuration for thread pool strategy.
      */
-    public NettyGatewayServer(NettyGatewayServerConfig config) {
+    public NettyGatewayServer(NettyGatewayServerConfig config) throws Exception {
         serverPort = config.getPort();
-        httpChannelInitializer = new HttpChannelInitializer(config);
+        try {
+            httpChannelInitializer = new HttpChannelInitializer(config);
+        } catch (Exception e) {
+            logger.error("HttpChannel initialization failed.");
+            throw e;
+        }
 
         acceptor = new NioEventLoopGroup(1);
         if (config.isSingleThread()) {
@@ -71,8 +76,8 @@ public class NettyGatewayServer {
     }
 
     public static void main(String[] args) {
-        NettyGatewayServer server = new NettyGatewayServer(NettyGatewayServerConfig.DEBUG);
         try {
+            NettyGatewayServer server = new NettyGatewayServer(NettyGatewayServerConfig.DEBUG);
             server.start();
         } catch (Exception e) {
             e.printStackTrace();

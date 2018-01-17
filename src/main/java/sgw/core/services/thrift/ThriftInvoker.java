@@ -1,8 +1,6 @@
 package sgw.core.services.thrift;
 
 import sgw.core.services.RpcInvoker;
-import sgw.core.services.RpcInvokerDef;
-import sgw.core.services.RpcInvokerManager;
 
 /**
  * has to be thread-safe

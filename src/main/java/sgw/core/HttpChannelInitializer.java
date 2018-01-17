@@ -8,15 +8,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.NettyGatewayServerConfig;
 import sgw.core.routing.Router;
+import sgw.core.routing.RouterDataSource;
 import sgw.core.routing.RouterGenerator;
 import sgw.core.routing.RouterGeneratorFactory;
-import sgw.core.services.RpcInvokerManager;
-import sgw.core.services.thrift.ThriftServiceManager;
+import sgw.core.services.RpcInvoker;
+import sgw.core.services.RpcInvokerDef;
+import sgw.core.services.RpcInvokerDetector;
+import sgw.core.services.RpcInvokerDetectorFactory;
+import sun.reflect.annotation.ExceptionProxy;
 
 /**
  * Only created once during server bootstrap.
  * Whenever a new http request comes in, it uses the same {@link HttpChannelInitializer} instance.
- * This gurantees {@link Router} and {@link RpcInvokerManager} are also created once.
+ * This gurantees {@link Router} and {@link RpcInvokerDetector} are also created once.
  *
  * Shared among threads, need to be thread-safe.
  */
@@ -26,18 +30,20 @@ public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
     private final Logger logger = LoggerFactory.getLogger(HttpChannelInitializer.class);
 
     private Router router;
-    private RpcInvokerManager invokerManager;
+    private RpcInvokerDetector invokerDetector;
 
-    public HttpChannelInitializer(NettyGatewayServerConfig config) {
-        try {
-            RouterGenerator routerGenerator = new RouterGeneratorFactory(config.getRouterDataSource()).create();
-            router = routerGenerator.generate();
-            // TODO: initialize RpcInvokerManager according to configuration
-            invokerManager = new ThriftServiceManager();
-        } catch (Exception e) {
-            logger.error(e.getMessage());
-            e.printStackTrace();
-        }
+    public HttpChannelInitializer(NettyGatewayServerConfig config) throws Exception{
+        initRouter(config.getRouterDataSource());
+        initServiceDetector(config);
+    }
+
+    private void initRouter(RouterDataSource source) throws Exception {
+        RouterGenerator routerGenerator = new RouterGeneratorFactory(source).create();
+        router = routerGenerator.generate();
+    }
+
+    private void initServiceDetector(NettyGatewayServerConfig config) {
+        invokerDetector = new RpcInvokerDetectorFactory(config).create();
     }
 
     @Override
@@ -48,7 +54,7 @@ public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
         // ChannelInboundHandler
         HttpServerHandler handler = new HttpServerHandler();
         handler.useRouter(router);
-        handler.useInvokerManager(invokerManager);
+        handler.useInvokerManager(invokerDetector);
         ch.pipeline().addLast("server", handler);
     }
 }

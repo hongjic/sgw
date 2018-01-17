@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
 import sgw.core.routing.Router;
 import sgw.core.services.RpcInvoker;
 import sgw.core.services.RpcInvokerDef;
-import sgw.core.services.RpcInvokerManager;
+import sgw.core.services.RpcInvokerDetector;
 
 import java.net.URI;
 
@@ -24,15 +24,15 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter{
     private boolean readingChunks;
     private HttpRequest request;
     private Router router;
-    private RpcInvokerManager invokerManager;
+    private RpcInvokerDetector invokerDetector;
     private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
 
     public void useRouter(Router router) {
         this.router = router;
     }
 
-    public void useInvokerManager(RpcInvokerManager invokerManager) {
-        this.invokerManager = invokerManager;
+    public void useInvokerManager(RpcInvokerDetector invokerDetector) {
+        this.invokerDetector = invokerDetector;
     }
 
     @Override
@@ -57,7 +57,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter{
             HttpRequestDef httpRequestDef = new HttpRequestDef(request);
             RpcInvokerDef invokerDef = router.getRpcInvokerDef(httpRequestDef);
             // get remote service
-            RpcInvoker invoker = invokerManager.find(invokerDef);
+            RpcInvoker invoker = invokerDetector.find(invokerDef);
 
         }
 
