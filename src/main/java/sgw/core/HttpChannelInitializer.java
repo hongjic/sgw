@@ -11,11 +11,8 @@ import sgw.core.routing.Router;
 import sgw.core.routing.RouterDataSource;
 import sgw.core.routing.RouterGenerator;
 import sgw.core.routing.RouterGeneratorFactory;
-import sgw.core.services.RpcInvoker;
-import sgw.core.services.RpcInvokerDef;
 import sgw.core.services.RpcInvokerDetector;
 import sgw.core.services.RpcInvokerDetectorFactory;
-import sun.reflect.annotation.ExceptionProxy;
 
 /**
  * Only created once during server bootstrap.

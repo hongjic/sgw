@@ -58,25 +58,20 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter{
             // get remote service
             RpcInvoker invoker = invokerDetector.find(invokerDef);
 
-        }
+            /**
+             * invoker.connet()  --> internally: create new channel according to
+             * invoker.
+             */
 
-        if (msg instanceof HttpRequest) {
-            HttpRequest request = (HttpRequest) msg;
-            HttpMethod method = request.method();
-            URI uri = new URI(request.uri());
-
-            logger.info("HttpRequest Method: {}", method);
-            logger.info("HttpRequest URI: {}", uri.toString());
-
-            if (method.equals(HttpMethod.GET)) {
-                writeResponse(ctx.channel());
-                return;
-            }
-
-            if (method.equals(HttpMethod.POST)) {
-                postDecoder = new HttpPostRequestDecoder(factory, request);
-                readingChunks = HttpUtil.isTransferEncodingChunked(request);
-            }
+//            if (method.equals(HttpMethod.GET)) {
+//                writeResponse(ctx.channel());
+//                return;
+//            }
+//
+//            if (method.equals(HttpMethod.POST)) {
+//                postDecoder = new HttpPostRequestDecoder(factory, request);
+//                readingChunks = HttpUtil.isTransferEncodingChunked(request);
+//            }
         }
 
         if (msg instanceof HttpContent) {
