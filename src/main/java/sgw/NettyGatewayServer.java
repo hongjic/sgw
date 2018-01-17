@@ -36,6 +36,7 @@ public class NettyGatewayServer {
         }
         else {
             int w = config.getWorkerThreads();
+            // if w == 0, that means using default_event_loop_threads, which is CPU*2
             workerGroup = new NioEventLoopGroup(w);
             if (config.isMultiWorkers()) {
                 backendGroup = workerGroup;

@@ -17,7 +17,7 @@ public class NettyGatewayServerConfig extends HashMap<String, Object>{
 
     static {
         DEBUG = new NettyGatewayServerConfig();
-        DEBUG.put(THREAD_POOL_STRATEGY, new ThreadPoolStrategy(ThreadPoolStrategy.SINGLE_THREAD, 0, 0));
+        DEBUG.put(THREAD_POOL_STRATEGY, ThreadPoolStrategy.DEBUG_MODE);
         DEBUG.put(PORT, defaultPort);
 
         RouterDataSource source = new RouterDataSource(RouterDataSource.Type.PROPERTIES_FILE);

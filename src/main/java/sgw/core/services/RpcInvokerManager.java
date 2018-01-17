@@ -1,5 +1,8 @@
 package sgw.core.services;
 
+/**
+ * All implementations should be thread-safe.
+ */
 public interface RpcInvokerManager {
 
     /**

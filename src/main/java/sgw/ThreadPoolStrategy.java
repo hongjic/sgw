@@ -8,6 +8,12 @@ public class ThreadPoolStrategy {
     private final Logger logger = LoggerFactory.getLogger(ThreadPoolStrategy.class);
 
     public static final int SINGLE_THREAD = 0;
+
+    /**
+     * MULTI_WORKERS might be the best way to do this. You can share the http
+     * channel and the corresponding rpc channel in the same {@link io.netty.channel.EventLoop}
+     * (a thread). So things can run efficiently without potential context switching.
+     */
     public static final int MULTI_WORKERS = 1;
     public static final int MULTI_WORKERS_AND_BACKENDS = 2;
 

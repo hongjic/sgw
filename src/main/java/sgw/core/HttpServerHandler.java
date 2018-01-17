@@ -2,10 +2,7 @@ package sgw.core;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.DefaultHttpDataFactory;
 import io.netty.handler.codec.http.multipart.HttpDataFactory;
@@ -40,6 +37,7 @@ public class HttpServerHandler extends ChannelInboundHandlerAdapter{
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        ctx.channel().write("aa");
         logger.info(msg.getClass().getName());
         /**
          * msg types:

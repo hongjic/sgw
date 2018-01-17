@@ -1,5 +1,6 @@
 package sgw.core;
 
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpServerCodec;
@@ -12,7 +13,14 @@ import sgw.core.routing.RouterGeneratorFactory;
 import sgw.core.services.RpcInvokerManager;
 import sgw.core.services.thrift.ThriftServiceManager;
 
-
+/**
+ * Only created once during server bootstrap.
+ * Whenever a new http request comes in, it uses the same {@link HttpChannelInitializer} instance.
+ * This gurantees {@link Router} and {@link RpcInvokerManager} are also created once.
+ *
+ * Shared among threads, need to be thread-safe.
+ */
+@ChannelHandler.Sharable
 public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     private final Logger logger = LoggerFactory.getLogger(HttpChannelInitializer.class);

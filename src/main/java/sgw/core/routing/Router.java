@@ -5,6 +5,9 @@ import sgw.core.services.RpcInvokerDef;
 
 import java.util.HashMap;
 
+/**
+ * Shared among threads, need to be thread-safe after `initialized` becomes ture.
+ */
 public class Router {
 
     private static Router router;
