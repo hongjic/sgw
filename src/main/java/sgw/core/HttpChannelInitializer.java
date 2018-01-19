@@ -1,12 +1,15 @@
 package sgw.core;
 
 import io.netty.channel.ChannelHandler;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
+import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpServerCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.NettyGatewayServerConfig;
+import sgw.ThreadPoolStrategy;
 import sgw.core.routing.Router;
 import sgw.core.routing.RouterDataSource;
 import sgw.core.routing.RouterGenerator;
@@ -28,10 +31,12 @@ public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     private Router router;
     private RpcInvokerDetector invokerDetector;
+    private ThreadPoolStrategy tpStrategy;
 
     public HttpChannelInitializer(NettyGatewayServerConfig config) throws Exception{
         initRouter(config.getRouterDataSource());
         initServiceDetector(config);
+        tpStrategy = config.getThreadPoolStrategy();
     }
 
     private void initRouter(RouterDataSource source) throws Exception {
@@ -52,6 +57,7 @@ public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
         HttpServerHandler handler = new HttpServerHandler();
         handler.useRouter(router);
         handler.useInvokerManager(invokerDetector);
+        handler.useThreadPoolStrategy(tpStrategy);
         ch.pipeline().addLast("server", handler);
     }
 }

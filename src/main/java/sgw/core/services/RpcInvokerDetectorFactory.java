@@ -1,7 +1,7 @@
 package sgw.core.services;
 
 import sgw.NettyGatewayServerConfig;
-import sgw.core.services.thrift.MoServiceDetectorImpl;
+import sgw.core.services.thrift.ThriftServiceDetector;
 
 public class RpcInvokerDetectorFactory {
 
@@ -11,6 +11,6 @@ public class RpcInvokerDetectorFactory {
 
     public RpcInvokerDetector create() {
         // TODO: create serviceDetector according to config.
-        return new MoServiceDetectorImpl();
+        return new ThriftServiceDetector();
     }
 }

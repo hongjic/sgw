@@ -1,5 +1,6 @@
 package sgw;
 
+import io.netty.channel.nio.NioEventLoopGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +25,10 @@ public class ThreadPoolStrategy {
     private int workerThreads;
     private int backendThreads;
 
+    private NioEventLoopGroup acceptor;
+    private NioEventLoopGroup workerGroup;
+    private NioEventLoopGroup backendGroup;
+
     /**
      *
      * @param strategy single_thread, multi_workers or multi_workers_and_backends
@@ -41,6 +46,29 @@ public class ThreadPoolStrategy {
         this.backendThreads = backendThreads;
     }
 
+    public void createThreadPool() {
+        acceptor = new NioEventLoopGroup(1);
+        if (isSingleThread()) {
+            workerGroup = acceptor;
+            backendGroup = acceptor;
+            logger.info("Server using single thread: [1]");
+        }
+        else {
+            // if w == 0, that means using default_event_loop_threads, which is CPU*2
+            workerGroup = new NioEventLoopGroup(workerThreads);
+            if (isMultiWorkers()) {
+                backendGroup = workerGroup;
+                logger.info("Server using multi workers: [1, {}]", workerThreads);
+            }
+            else {
+                // ThreadPoolStrategy.MULTI_WORKERS_AND_BACKENDS
+                backendGroup = new NioEventLoopGroup(backendThreads);
+                logger.info("Server using multi workers multi backends: [1, {}, {}]",
+                        workerThreads, backendThreads);
+            }
+        }
+    }
+
     public boolean isSingleThread() {
         return strategy == SINGLE_THREAD;
     }
@@ -53,12 +81,16 @@ public class ThreadPoolStrategy {
         return strategy == MULTI_WORKERS_AND_BACKENDS;
     }
 
-    public int getWorkerThreads() {
-        return workerThreads;
+    public NioEventLoopGroup getAcceptor() {
+        return acceptor;
     }
 
-    public int getBackendThreads() {
-        return backendThreads;
+    public NioEventLoopGroup getWorkerGroup() {
+        return workerGroup;
+    }
+
+    public NioEventLoopGroup getBackendGroup() {
+        return backendGroup;
     }
 
 }

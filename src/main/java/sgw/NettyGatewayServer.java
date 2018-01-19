@@ -26,33 +26,17 @@ public class NettyGatewayServer {
      */
     public NettyGatewayServer(NettyGatewayServerConfig config) throws Exception {
         serverPort = config.getPort();
+        ThreadPoolStrategy strategy = config.getThreadPoolStrategy();
+        strategy.createThreadPool();
+        acceptor = strategy.getAcceptor();
+        workerGroup = strategy.getWorkerGroup();
+        backendGroup = strategy.getBackendGroup();
+
         try {
             httpChannelInitializer = new HttpChannelInitializer(config);
         } catch (Exception e) {
             logger.error("HttpChannel initialization failed.");
             throw e;
-        }
-
-        acceptor = new NioEventLoopGroup(1);
-        if (config.isSingleThread()) {
-            workerGroup = acceptor;
-            backendGroup = acceptor;
-            logger.info("Server using single thread: [1]");
-        }
-        else {
-            int w = config.getWorkerThreads();
-            // if w == 0, that means using default_event_loop_threads, which is CPU*2
-            workerGroup = new NioEventLoopGroup(w);
-            if (config.isMultiWorkers()) {
-                backendGroup = workerGroup;
-                logger.info("Server using multi workers: [1, {}]", w);
-            }
-            else {
-                // ThreadPoolStrategy.MULTI_WORKERS_AND_BACKENDS
-                int b = config.getBackendThreads();
-                backendGroup = new NioEventLoopGroup(b);
-                logger.info("Server using multi workers multi backends: [1, {}, {}]", w, b);
-            }
         }
     }
 
@@ -77,7 +61,9 @@ public class NettyGatewayServer {
 
     public static void main(String[] args) {
         try {
-            NettyGatewayServer server = new NettyGatewayServer(NettyGatewayServerConfig.DEBUG);
+            NettyGatewayServerConfig config = NettyGatewayServerConfig.DEBUG;
+            config.setThreadPoolStrategy(new ThreadPoolStrategy(ThreadPoolStrategy.MULTI_WORKERS_AND_BACKENDS, 1, 1));
+            NettyGatewayServer server = new NettyGatewayServer(config);
             server.start();
         } catch (Exception e) {
             e.printStackTrace();

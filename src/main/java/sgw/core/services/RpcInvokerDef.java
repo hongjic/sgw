@@ -35,4 +35,9 @@ public class RpcInvokerDef {
         return String.format("[serviceName: %s, methodName: %s, paramConvertor: %s, resultConvertor",
                 serviceName, methodName, paramConvertor, resultConvertor);
     }
+
+    public String toSimpleString() {
+        return String.format("[serviceName: %s, methodName: %s]",
+                serviceName, methodName);
+    }
 }

@@ -30,19 +30,15 @@ public class NettyGatewayServerConfig extends HashMap<String, Object>{
     }
 
     public boolean isSingleThread() {
-        return ((ThreadPoolStrategy) get(THREAD_POOL_STRATEGY)).isSingleThread();
+        return getThreadPoolStrategy().isSingleThread();
     }
 
     public boolean isMultiWorkers() {
-        return ((ThreadPoolStrategy) get(THREAD_POOL_STRATEGY)).isMultiWorkers();
+        return getThreadPoolStrategy().isMultiWorkers();
     }
 
-    public int getWorkerThreads() {
-        return ((ThreadPoolStrategy) get(THREAD_POOL_STRATEGY)).getWorkerThreads();
-    }
-
-    public int getBackendThreads() {
-        return ((ThreadPoolStrategy) get(THREAD_POOL_STRATEGY)).getBackendThreads();
+    public ThreadPoolStrategy getThreadPoolStrategy() {
+        return (ThreadPoolStrategy) get(THREAD_POOL_STRATEGY);
     }
 
     public void setThreadPoolStrategy(ThreadPoolStrategy strategy) {
