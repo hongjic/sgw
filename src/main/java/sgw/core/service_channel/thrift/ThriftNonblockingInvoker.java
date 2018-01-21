@@ -1,4 +1,4 @@
-package sgw.core.services.thrift;
+package sgw.core.service_channel.thrift;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -8,12 +8,11 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sgw.core.BackendChannelInitializer;
-import sgw.core.services.RpcInvoker;
-import sgw.core.services.RpcInvokerDef;
+import sgw.core.service_channel.ServiceChannelInitializer;
+import sgw.core.service_channel.RpcInvoker;
+import sgw.core.service_channel.RpcInvokerDef;
 
 import java.net.SocketAddress;
-import java.util.List;
 
 /**
  * has to be thread-safe
@@ -23,7 +22,7 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
 
     private Logger logger = LoggerFactory.getLogger(ThriftNonblockingInvoker.class);
 
-    private RpcInvokerDef thriftInvokerDef;
+    private RpcInvokerDef invokerDef;
     private SocketAddress remoteAddress;
     private Bootstrap bootstrap;
     private Channel thriftChannel;
@@ -31,7 +30,7 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
     private InvokerState state;
 
     public ThriftNonblockingInvoker(RpcInvokerDef invokerDef, SocketAddress remoteAddress) {
-        this.thriftInvokerDef = invokerDef;
+        this.invokerDef = invokerDef;
         this.remoteAddress = remoteAddress;
         setState(InvokerState.INACTIVE);
     }
@@ -41,23 +40,22 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
         bootstrap = new Bootstrap();
         bootstrap.group(group)
                 .channel(NioSocketChannel.class)
-                .handler(new BackendChannelInitializer(thriftInvokerDef));
+                .handler(new ServiceChannelInitializer(invokerDef));
         return this;
     }
 
     @Override
-    public ChannelFuture invoke(List<Object> params) {
+    public ChannelFuture invokeAsync(Object param) {
         if (thriftChannel == null)
             throw new NullPointerException("thriftChannel");
         else if (!thriftChannel.isActive())
             throw new IllegalStateException("Method invoke() called before channel becomes active.");
-
         setState(InvokerState.INVOKED);
-        return thriftChannel.write(params);
+        return thriftChannel.write(param);
     }
 
     @Override
-    public ChannelFuture connect() {
+    public ChannelFuture connectAsync() {
         ChannelFuture future = bootstrap.connect(remoteAddress);
         future.addListener((ChannelFuture future1) -> {
             EventLoop eventLoop = inboundChannel.eventLoop();
@@ -68,13 +66,13 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
                         connected());
         });
         setState(InvokerState.CONNECTING);
-        logger.info("Connecting remote: " + thriftInvokerDef.toSimpleString());
+        logger.info("Connecting remote: " + invokerDef.toSimpleString());
         thriftChannel = future.channel();
         return future;
     }
 
     private void connected() {
-        logger.info("Connection established: " + thriftInvokerDef.toSimpleString());
+        logger.info("Connection established: " + invokerDef.toSimpleString());
         setState(InvokerState.ACTIVE);
     }
 
@@ -96,5 +94,10 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
     @Override
     public void setInboundChannel(Channel channel) {
         inboundChannel = channel;
+    }
+
+    @Override
+    public RpcInvokerDef getInvokerDef() {
+        return invokerDef;
     }
 }

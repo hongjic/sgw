@@ -1,4 +1,4 @@
-package sgw.core.routing;
+package sgw.core.http_channel.routing;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

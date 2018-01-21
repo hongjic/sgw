@@ -1,4 +1,4 @@
-package sgw.core.routing;
+package sgw.core.http_channel.routing;
 
 import java.util.HashMap;
 

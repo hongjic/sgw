@@ -1,10 +1,10 @@
-package sgw.core.routing;
+package sgw.core.http_channel.routing;
 
 import io.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sgw.core.HttpRequestDef;
-import sgw.core.services.RpcInvokerDef;
+import sgw.core.http_channel.HttpRequestDef;
+import sgw.core.service_channel.RpcInvokerDef;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,11 +12,12 @@ import java.util.*;
 
 public class RouterPropertiesFileCompiler implements RouterGenerator{
 
-    private static final int NUM_KV = 4;
-    private static final int METHOD = 0;
-    private static final int URI = 1;
-    private static final int PARAM_CONVERTOR = 2;
-    private static final int RESULT_CONVERTOR = 3;
+    private static final int NUM_KV = 5;
+    private static final int PROTOCOL = 0;
+    private static final int METHOD = 1;
+    private static final int URI = 2;
+    private static final int PARAM_CONVERTOR = 3;
+    private static final int RESULT_CONVERTOR = 4;
 
     private static final class Tuple {
         final String a, b;
@@ -98,7 +99,10 @@ public class RouterPropertiesFileCompiler implements RouterGenerator{
             hashMap.put(t1, new Tuple[NUM_KV]);
         Tuple[] pairs = hashMap.get(t1);
 
-        if (k.equals("method")) {
+        if (k.equals("protocol")) {
+            pairs[PROTOCOL] = t2;
+        }
+        else if (k.equals("method")) {
             pairs[METHOD] = t2;
         }
         else if (k.equals("uri")) {
@@ -116,7 +120,7 @@ public class RouterPropertiesFileCompiler implements RouterGenerator{
             HttpMethod method = HttpMethod.valueOf(pairs[METHOD].b);
             HttpRequestDef reqDef = new HttpRequestDef(method, pairs[URI].b);
             RpcInvokerDef invokerDef = new RpcInvokerDef(serviceName, methodName,
-                    pairs[PARAM_CONVERTOR].b, pairs[RESULT_CONVERTOR].b);
+                    pairs[PARAM_CONVERTOR].b, pairs[RESULT_CONVERTOR].b, pairs[PROTOCOL].b);
             hashMap.remove(t1);
             router.putRouting(reqDef, invokerDef);
         }

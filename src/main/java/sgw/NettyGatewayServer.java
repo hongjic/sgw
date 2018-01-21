@@ -1,8 +1,12 @@
 package sgw;
 
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
+import io.netty.buffer.Unpooled;
+import io.netty.buffer.UnpooledHeapByteBuf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sgw.core.HttpChannelInitializer;
+import sgw.core.http_channel.HttpChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -61,8 +65,10 @@ public class NettyGatewayServer {
 
     public static void main(String[] args) {
         try {
-            NettyGatewayServerConfig config = NettyGatewayServerConfig.DEBUG;
-            config.setThreadPoolStrategy(new ThreadPoolStrategy(ThreadPoolStrategy.MULTI_WORKERS_AND_BACKENDS, 1, 1));
+            NettyGatewayServerConfig config = NettyGatewayServerConfig.getDebugConfig();
+            ThreadPoolStrategy strategy = new ThreadPoolStrategy(ThreadPoolStrategy.MULTI_WORKERS_AND_BACKENDS, 1, 1);
+            config.setThreadPoolStrategy(strategy);
+
             NettyGatewayServer server = new NettyGatewayServer(config);
             server.start();
         } catch (Exception e) {

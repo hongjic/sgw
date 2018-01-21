@@ -1,4 +1,4 @@
-package sgw.core.routing;
+package sgw.core.http_channel.routing;
 
 public interface RouterGenerator {
 

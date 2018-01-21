@@ -1,7 +1,7 @@
-package sgw.core.services;
+package sgw.core.service_channel;
 
 import sgw.NettyGatewayServerConfig;
-import sgw.core.services.thrift.ThriftServiceDetector;
+import sgw.core.service_channel.thrift.ThriftServiceDetector;
 
 public class RpcInvokerDetectorFactory {
 

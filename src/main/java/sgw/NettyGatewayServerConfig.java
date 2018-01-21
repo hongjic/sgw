@@ -1,6 +1,6 @@
 package sgw;
 
-import sgw.core.routing.RouterDataSource;
+import sgw.core.http_channel.routing.RouterDataSource;
 
 import java.util.HashMap;
 
@@ -9,20 +9,28 @@ public class NettyGatewayServerConfig extends HashMap<String, Object>{
     private static final String PORT = "port";
     private static final String ROUTER_DATA_SOURCE = "routerDataSource";
     private static final String THREAD_POOL_STRATEGY = "threadPoolStrategy";
+    private static final String MAX_HTTP_CONTENT_LENGTH = "maxHttpContentLength";
 
     private static final int defaultPort = 8080;
     private static final String defaultRouterPropertiesFilePath = "src/main/resources/routing.properties";
+    private static final int defaultMaxHttpContentLength = 1048576; /** 1MB **/
 
-    public static NettyGatewayServerConfig DEBUG;
+    private static NettyGatewayServerConfig config;
 
-    static {
-        DEBUG = new NettyGatewayServerConfig();
-        DEBUG.put(THREAD_POOL_STRATEGY, ThreadPoolStrategy.DEBUG_MODE);
-        DEBUG.put(PORT, defaultPort);
+    public static NettyGatewayServerConfig getCurrentConfig() {
+        return config;
+    }
+
+    public static NettyGatewayServerConfig getDebugConfig() {
+        config = new NettyGatewayServerConfig();
+        config.put(THREAD_POOL_STRATEGY, ThreadPoolStrategy.DEBUG_MODE);
+        config.put(PORT, defaultPort);
 
         RouterDataSource source = new RouterDataSource(RouterDataSource.Type.PROPERTIES_FILE);
         source.setPropertiesFilePath(defaultRouterPropertiesFilePath);
-        DEBUG.put(ROUTER_DATA_SOURCE, source);
+        config.put(ROUTER_DATA_SOURCE, source);
+        config.put(MAX_HTTP_CONTENT_LENGTH, defaultMaxHttpContentLength);
+        return config;
     }
 
     public NettyGatewayServerConfig() {
@@ -59,5 +67,9 @@ public class NettyGatewayServerConfig extends HashMap<String, Object>{
 
     public RouterDataSource getRouterDataSource() {
         return (RouterDataSource) get(ROUTER_DATA_SOURCE);
+    }
+
+    public int getMaxHttpContentLength() {
+        return (int) get(MAX_HTTP_CONTENT_LENGTH);
     }
 }

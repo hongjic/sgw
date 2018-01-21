@@ -1,7 +1,7 @@
-package sgw.core.routing;
+package sgw.core.http_channel.routing;
 
-import sgw.core.HttpRequestDef;
-import sgw.core.services.RpcInvokerDef;
+import sgw.core.http_channel.HttpRequestDef;
+import sgw.core.service_channel.RpcInvokerDef;
 
 import java.util.HashMap;
 

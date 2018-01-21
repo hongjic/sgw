@@ -1,4 +1,4 @@
-package sgw.core.services;
+package sgw.core.service_channel;
 
 public class RpcInvokerDef {
 
@@ -6,12 +6,15 @@ public class RpcInvokerDef {
     private final String methodName;
     private final String paramConvertor;
     private final String resultConvertor;
+    private final String protocol;
 
-    public RpcInvokerDef(String serviceName, String methodName, String paramConvertor, String resultConvertor) {
+    public RpcInvokerDef(String serviceName, String methodName,
+                         String paramConvertor, String resultConvertor, String protocol) {
         this.serviceName = serviceName;
         this.methodName = methodName;
         this.paramConvertor = paramConvertor;
         this.resultConvertor = resultConvertor;
+        this.protocol = protocol;
     }
 
     public String getServiceName() {
@@ -30,14 +33,18 @@ public class RpcInvokerDef {
         return resultConvertor;
     }
 
+    public String getProtocol() {
+        return protocol;
+    }
+
     @Override
     public String toString() {
-        return String.format("[serviceName: %s, methodName: %s, paramConvertor: %s, resultConvertor",
+        return String.format("[protocol: %s, serviceName: %s, methodName: %s, paramConvertor: %s, resultConvertor]",
                 serviceName, methodName, paramConvertor, resultConvertor);
     }
 
     public String toSimpleString() {
-        return String.format("[serviceName: %s, methodName: %s]",
+        return String.format("[protocol: %s, serviceName: %s, methodName: %s]",
                 serviceName, methodName);
     }
 }

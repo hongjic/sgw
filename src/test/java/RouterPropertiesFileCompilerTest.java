@@ -1,8 +1,8 @@
 import io.netty.handler.codec.http.HttpMethod;
 import org.junit.Test;
-import sgw.core.HttpRequestDef;
-import sgw.core.routing.*;
-import sgw.core.services.RpcInvokerDef;
+import sgw.core.http_channel.HttpRequestDef;
+import sgw.core.http_channel.routing.*;
+import sgw.core.service_channel.RpcInvokerDef;
 
 import static org.junit.Assert.assertEquals;
 
@@ -27,7 +27,7 @@ public class RouterPropertiesFileCompilerTest {
 
         assertEquals(invokerDef.getServiceName(), "demoservice");
         assertEquals(invokerDef.getMethodName(), "test");
-        assertEquals(invokerDef.getParamConvertor(), "HttpBodyToString");
+        assertEquals(invokerDef.getParamConvertor(), "EchoServiceEchoParams");
         assertEquals(invokerDef.getResultConvertor(), "StringToHttpResponse");
     }
 }

@@ -1,4 +1,4 @@
-package sgw.core;
+package sgw.core.http_channel;
 
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
