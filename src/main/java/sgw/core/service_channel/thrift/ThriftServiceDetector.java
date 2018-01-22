@@ -26,6 +26,10 @@ public class ThriftServiceDetector implements RpcInvokerDetector {
         return null;
     }
 
+    /**
+     * temporary hard coded method.
+     * TODO: use findAsync and connectAsync
+     */
     @Override
     public RpcInvoker find(RpcInvokerDef invokerDef) throws Exception {
         // temporary hard code here.

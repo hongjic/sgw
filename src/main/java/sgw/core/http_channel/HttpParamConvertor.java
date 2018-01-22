@@ -17,7 +17,9 @@ import java.util.List;
 public class HttpParamConvertor extends MessageToMessageDecoder<FullHttpRequest>{
 
     private final Logger logger = LoggerFactory.getLogger(HttpParamConvertor.class);
-    private static final String FORMAT = "examples.thrift_service.%s$%s_args";
+
+    // TODO: support configuration
+    private static final String ARG_PATH_FORMAT = "examples.thrift_service.%s$%s_args";
 
     private HttpChannelContext httpCtx;
 
@@ -33,18 +35,18 @@ public class HttpParamConvertor extends MessageToMessageDecoder<FullHttpRequest>
         Object[] params = parser.parse(request);
 
         RpcInvokerDef invokerDef = httpCtx.getInvoker().getInvokerDef();
-        String serviceName = invokerDef.getServiceName();
-        String methodName = invokerDef.getMethodName();
 
-        TBase<?, TFieldIdEnum> args = createThriftArg(params, serviceName, methodName);
-        TWrapper wrapper = new TWrapper(args, methodName);
+        TBase<?, TFieldIdEnum> args = createThriftArg(params, invokerDef);
+        TWrapper wrapper = new TWrapper(args, invokerDef.getMethodName());
         out.add(wrapper);
     }
 
-    private TBase<?, TFieldIdEnum> createThriftArg(Object[] params, String serviceName, String methodName) throws Exception {
+    private TBase<?, TFieldIdEnum> createThriftArg(Object[] params, RpcInvokerDef invokerDef) throws Exception {
         TBase<?, TFieldIdEnum> args;
+        String clazzName = String.format(ARG_PATH_FORMAT,
+                invokerDef.getServiceName(), invokerDef.getMethodName());
         try {
-            Class<?> clazz = Class.forName(String.format(FORMAT, serviceName, methodName));
+            Class<?> clazz = Class.forName(clazzName);
             args = (TBase<?, TFieldIdEnum>) clazz.newInstance();
 
             for (int fieldId = 1; fieldId <= params.length; fieldId++) {
@@ -52,8 +54,10 @@ public class HttpParamConvertor extends MessageToMessageDecoder<FullHttpRequest>
                 args.setFieldValue(field, params[fieldId - 1]);
             }
         } catch (ClassNotFoundException e) {
-            logger.error("Thrift class named as {} can not be found.", serviceName);
-            throw new DecoderException();
+            // Deal wiht ClassNotFoundException separately here. Later all Exceptions will be
+            // converted into DecoderException.
+            logger.error("Thrift class named as {} can not be found.", clazzName);
+            throw e;
         }
         return args;
     }

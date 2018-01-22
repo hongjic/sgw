@@ -37,7 +37,7 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
         bootstrap = new Bootstrap();
         bootstrap.group(group)
                 .channel(NioSocketChannel.class)
-                .handler(new ServiceChannelInitializer(invokerDef));
+                .handler(new ServiceChannelInitializer(invokerDef, inboundChannel));
         return this;
     }
 
@@ -74,7 +74,7 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
     }
 
     @Override
-    public Channel getChannel() {
+    public Channel getRpcChannel() {
         return thriftChannel;
     }
 

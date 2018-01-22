@@ -28,7 +28,7 @@ public interface RpcInvoker {
 
     void setInboundChannel(Channel channel);
 
-    Channel getChannel();
+    Channel getRpcChannel();
 
     InvokerState getState();
 

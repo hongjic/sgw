@@ -8,6 +8,7 @@ import sgw.core.http_channel.routing.Router;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_channel.RpcInvokerDetector;
+import sgw.core.service_channel.RpcInvokerDetectorFactory;
 import sgw.parser.FullHttpRequestParser;
 
 import java.net.URI;
@@ -33,7 +34,9 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         Router router = httpCtx.getRouter();
-        RpcInvokerDetector invokerDetector = httpCtx.getInvokerDetector();
+        // init service detector
+        RpcInvokerDetector invokerDetector = new RpcInvokerDetectorFactory(httpCtx.getConfig()).create();
+        httpCtx.setInvokerDetector(invokerDetector);
 
         /**
          * msg types:

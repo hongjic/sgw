@@ -17,9 +17,11 @@ import sgw.core.service_channel.thrift.ThriftEncoder;
 public class ServiceChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     private RpcInvokerDef invokerDef;
+    private Channel httpChannel;
 
-    public ServiceChannelInitializer(RpcInvokerDef invokerDef) {
+    public ServiceChannelInitializer(RpcInvokerDef invokerDef, Channel httpChannel) {
         this.invokerDef = invokerDef;
+        this.httpChannel = httpChannel;
     }
 
     @Override
@@ -36,12 +38,12 @@ public class ServiceChannelInitializer extends ChannelInitializer<SocketChannel>
             pipeline.addLast("thriftEncoder", new ThriftEncoder(true));
 
             // inbound handlers: receive and decode response
-            pipeline.addLast("thriftDecoder", new ThriftDecoder());
+            pipeline.addLast("thriftDecoder", new ThriftDecoder(invokerDef));
             /**
              * Send the generated http response back to the http channel.
              * Probably its the always the same despite the rpc protocol we use.
              */
-            pipeline.addLast("final", new RpcFinalHandler());
+            pipeline.addLast("final", new RpcFinalHandler(httpChannel));
         }
     }
 }

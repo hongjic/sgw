@@ -8,11 +8,11 @@ import org.apache.thrift.TException;
 import org.apache.thrift.protocol.*;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TTransport;
-import sgw.core.service_channel.thrift.transport.BytebufWriteTransport;
+import sgw.core.service_channel.thrift.transport.ByteBufWriteTransport;
 
 public class ThriftEncoder extends MessageToByteEncoder<TWrapper> {
     /**
-     *
+     * // TODO: eanble config
      */
     private static final int INITIAL_BUFFER_SIZE = 128;
     private static final int MAX_BUFFER_SIZE = 1024*1024*1024;
@@ -47,7 +47,7 @@ public class ThriftEncoder extends MessageToByteEncoder<TWrapper> {
         buf.setIndex(0, 4);
 
         // write frame buffer
-        TTransport transport = new BytebufWriteTransport(buf);
+        TTransport transport = new ByteBufWriteTransport(buf);
         TProtocol protocol = new TCompactProtocol.Factory().getProtocol(transport);
         protocol.writeMessageBegin(new TMessage(methodName, TMessageType.CALL, 0));
         args.write(protocol);

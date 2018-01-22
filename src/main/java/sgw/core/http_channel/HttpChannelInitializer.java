@@ -40,17 +40,16 @@ public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     public HttpChannelInitializer(NettyGatewayServerConfig config) throws Exception{
         httpCtx = new HttpChannelContext();
+        httpCtx.setConfig(config);
         // init router
         RouterGenerator routerGenerator = new RouterGeneratorFactory(config.getRouterDataSource()).create();
         httpCtx.setRouter(routerGenerator.generate());
         logger.info("Router initialized.");
-        // init service detector
-        httpCtx.setInvokerDetector(new RpcInvokerDetectorFactory(config).create());
     }
 
     @Override
     public void initChannel(SocketChannel ch) {
-
+        httpCtx.setChannel(ch);
         ChannelPipeline p = ch.pipeline();
         // HttpServerCodec is both inbound and outbound
         p.addLast(HTTP_CODEC, new HttpServerCodec());

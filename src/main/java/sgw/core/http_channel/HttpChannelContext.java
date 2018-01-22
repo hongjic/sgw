@@ -1,5 +1,7 @@
 package sgw.core.http_channel;
 
+import io.netty.channel.Channel;
+import sgw.NettyGatewayServerConfig;
 import sgw.core.http_channel.routing.Router;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDetector;
@@ -15,6 +17,8 @@ public final class HttpChannelContext {
     private RpcInvoker invoker;
     private FullHttpRequestParser parser;
     private Object invokeParam;
+    private NettyGatewayServerConfig config;
+    private Channel channel;
 
     public Router getRouter() {
         return router;
@@ -54,5 +58,21 @@ public final class HttpChannelContext {
 
     public void setInvokeParam(Object invokeParam) {
         this.invokeParam = invokeParam;
+    }
+
+    public NettyGatewayServerConfig getConfig() {
+        return config;
+    }
+
+    public void setConfig(NettyGatewayServerConfig config) {
+        this.config = config;
+    }
+
+    public Channel getChannel() {
+        return channel;
+    }
+
+    public void setChannel(Channel channel) {
+        this.channel = channel;
     }
 }

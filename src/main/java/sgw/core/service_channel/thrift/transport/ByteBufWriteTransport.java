@@ -3,11 +3,11 @@ package sgw.core.service_channel.thrift.transport;
 import io.netty.buffer.ByteBuf;
 import org.apache.thrift.transport.TTransport;
 
-public class BytebufWriteTransport extends TTransport {
+public class ByteBufWriteTransport extends TTransport {
 
     private ByteBuf buf;
 
-    public BytebufWriteTransport(ByteBuf buf) {
+    public ByteBufWriteTransport(ByteBuf buf) {
         this.buf = buf;
     }
 

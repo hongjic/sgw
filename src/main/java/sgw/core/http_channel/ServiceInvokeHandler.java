@@ -78,11 +78,7 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
 
     private void doInvoke(RpcInvoker invoker) {
         if (invoker.getState() == RpcInvoker.InvokerState.ACTIVE && invokeParam != null) {
-            try {
-                invoker.invokeAsync(invokeParam);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            invoker.invokeAsync(invokeParam);
         }
     }
 
