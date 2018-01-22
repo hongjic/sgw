@@ -40,11 +40,11 @@ public class RpcInvokerDef {
     @Override
     public String toString() {
         return String.format("[protocol: %s, serviceName: %s, methodName: %s, paramConvertor: %s, resultConvertor]",
-                serviceName, methodName, paramConvertor, resultConvertor);
+                protocol, serviceName, methodName, paramConvertor, resultConvertor);
     }
 
     public String toSimpleString() {
         return String.format("[protocol: %s, serviceName: %s, methodName: %s]",
-                serviceName, methodName);
+                protocol, serviceName, methodName);
     }
 }

@@ -1,10 +1,7 @@
 package sgw.core.service_channel.thrift;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.EventLoop;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +48,7 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
         else if (!thriftChannel.isActive())
             throw new IllegalStateException("Method invoke() called before channel becomes active.");
         setState(InvokerState.INVOKED);
-        return thriftChannel.write(param);
+        return thriftChannel.writeAndFlush(param);
     }
 
     @Override

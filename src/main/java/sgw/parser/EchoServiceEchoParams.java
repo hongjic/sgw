@@ -10,12 +10,12 @@ import java.util.List;
  */
 public class EchoServiceEchoParams implements FullHttpRequestParser {
 
+    public EchoServiceEchoParams() {}
+
     @Override
     public Object[] parse(FullHttpRequest request) {
-        String content = request.content().toString(Charsets.UTF_8);
-        request.release();
         Object[] params = new Object[1];
-        params[0] = content;
+        params[0] = request.content().toString(Charsets.UTF_8);
         return params;
     }
 }

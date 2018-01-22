@@ -6,6 +6,7 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import org.apache.thrift.TBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.NettyGatewayServerConfig;
@@ -53,7 +54,7 @@ public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
         ChannelPipeline p = ch.pipeline();
         // HttpServerCodec is both inbound and outbound
         p.addLast(HTTP_CODEC, new HttpServerCodec());
-        p.addLast(RESULT_TO_HTTP, new ResultHttpConvertor<>());
+        p.addLast(RESULT_TO_HTTP, new ResultHttpConvertor());
 
         // ChannelInboundHandler
         p.addLast(SERVICE_DISCOVERY, new HttpRoutingHandler(httpCtx));

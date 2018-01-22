@@ -22,12 +22,12 @@ public class RouterPropertiesFileCompilerTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        HttpRequestDef reqDef = new HttpRequestDef(HttpMethod.GET, "/test1");
+        HttpRequestDef reqDef = new HttpRequestDef(HttpMethod.POST, "/aaa");
         RpcInvokerDef invokerDef = router.getRpcInvokerDef(reqDef);
 
-        assertEquals(invokerDef.getServiceName(), "demoservice");
-        assertEquals(invokerDef.getMethodName(), "test");
-        assertEquals(invokerDef.getParamConvertor(), "EchoServiceEchoParams");
+        assertEquals(invokerDef.getServiceName(), "EchoService");
+        assertEquals(invokerDef.getMethodName(), "echo");
+        assertEquals(invokerDef.getParamConvertor(), "sgw.parser.EchoServiceEchoParams");
         assertEquals(invokerDef.getResultConvertor(), "StringToHttpResponse");
     }
 }

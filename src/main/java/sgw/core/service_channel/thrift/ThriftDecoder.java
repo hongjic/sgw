@@ -10,7 +10,7 @@ public class ThriftDecoder extends ByteToMessageDecoder {
 
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) {
-
+        System.out.println("Hi Im here!!!");
     }
 
 }

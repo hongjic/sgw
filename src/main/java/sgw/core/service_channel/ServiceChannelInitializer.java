@@ -33,7 +33,7 @@ public class ServiceChannelInitializer extends ChannelInitializer<SocketChannel>
          */
         if (protocol.equals("Thrift")) {
             // outbound handlers: encode and send request
-            pipeline.addLast("thriftEncoder", new ThriftEncoder<>());
+            pipeline.addLast("thriftEncoder", new ThriftEncoder(true));
 
             // inbound handlers: receive and decode response
             pipeline.addLast("thriftDecoder", new ThriftDecoder());
