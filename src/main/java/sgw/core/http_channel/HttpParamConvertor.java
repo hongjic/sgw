@@ -1,7 +1,6 @@
 package sgw.core.http_channel;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.handler.codec.http.FullHttpRequest;
 import org.apache.thrift.TBase;
@@ -9,7 +8,7 @@ import org.apache.thrift.TFieldIdEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.service_channel.RpcInvokerDef;
-import sgw.core.service_channel.thrift.TWrapper;
+import sgw.core.service_channel.thrift.TCallWrapper;
 import sgw.parser.FullHttpRequestParser;
 
 import java.util.List;
@@ -30,14 +29,15 @@ public class HttpParamConvertor extends MessageToMessageDecoder<FullHttpRequest>
     @Override
     public void decode(ChannelHandlerContext ctx, FullHttpRequest request, List<Object> out) throws Exception {
         // FullHttpRequestParser has been created before this.
-        FullHttpRequestParser parser = httpCtx.getFullHttpRequestParser();
-        logger.info("Start decoding FullHttpRequest using {}", parser.getClass().getName());
-        Object[] params = parser.parse(request);
+        FullHttpRequestParser requestParser = httpCtx.getFullHttpRequestParser();
+        logger.info("Converting Http request to Thrift request BY {}", requestParser.getClass().getName());
+        // parse http request into an array of parameters.
+        Object[] params = requestParser.parse(request);
 
         RpcInvokerDef invokerDef = httpCtx.getInvoker().getInvokerDef();
 
         TBase<?, TFieldIdEnum> args = createThriftArg(params, invokerDef);
-        TWrapper wrapper = new TWrapper(args, invokerDef.getMethodName());
+        TCallWrapper wrapper = new TCallWrapper(args, invokerDef.getMethodName());
         out.add(wrapper);
     }
 

@@ -20,7 +20,7 @@ import java.util.List;
 
 public class ThriftDecoder extends ByteToMessageDecoder {
 
-    private static final Logger logger = LoggerFactory.getLogger(ThriftDecoder.class);
+    private final Logger logger = LoggerFactory.getLogger(ThriftDecoder.class);
 
     // TODO: support configuration
     private static final String RESULT_PATH_FORMAT = "examples.thrift_service.%s$%s_result";
@@ -37,6 +37,7 @@ public class ThriftDecoder extends ByteToMessageDecoder {
 
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
+        logger.info("Start decoding Thrift response.");
         if (!sizeDecoded) {
             tryDecodeFrameSize(buf);
         }

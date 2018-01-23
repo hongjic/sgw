@@ -10,6 +10,7 @@ import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_channel.RpcInvokerDetector;
 import sgw.core.service_channel.RpcInvokerDetectorFactory;
 import sgw.parser.FullHttpRequestParser;
+import sgw.parser.FullHttpResponseGenerator;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -72,9 +73,13 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
                  * TODO: initialize frequently used data convertors and save them in a pool for reusement.
                  * Because reflection is expensive and data convertors are stateless, should be reused.
                  */
-                Class clazz = Class.forName(invokerDef.getParamConvertor());
-                FullHttpRequestParser parser = (FullHttpRequestParser) clazz.newInstance();
-                httpCtx.setFullHttpRequestParser(parser);
+                Class clazz1 = Class.forName(invokerDef.getParamConvertor());
+                FullHttpRequestParser requestParser = (FullHttpRequestParser) clazz1.newInstance();
+                httpCtx.setFullHttpRequestParser(requestParser);
+
+                Class clazz2 = Class.forName(invokerDef.getResultConvertor());
+                FullHttpResponseGenerator responseGenerator = (FullHttpResponseGenerator) clazz2.newInstance();
+                httpCtx.setFullHttpResponseGenerator(responseGenerator);
             } catch (ClassNotFoundException e) {
                 logger.error("Cannot find param convertor defined for remote service: {}", invokerDef.toString());
                 e.printStackTrace();

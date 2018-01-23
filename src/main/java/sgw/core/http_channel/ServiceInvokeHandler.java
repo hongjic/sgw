@@ -1,12 +1,15 @@
 package sgw.core.http_channel;
 
 import io.netty.channel.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sgw.NettyGatewayServerConfig;
 import sgw.ThreadPoolStrategy;
 import sgw.core.service_channel.RpcInvoker;
 
 public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
 
+    private final Logger logger = LoggerFactory.getLogger(ServiceInvokeHandler.class);
     /**
      * When using Thrift, it is a TBase object representing the Thrift request
      */
@@ -78,7 +81,9 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
 
     private void doInvoke(RpcInvoker invoker) {
         if (invoker.getState() == RpcInvoker.InvokerState.ACTIVE && invokeParam != null) {
-            invoker.invokeAsync(invokeParam);
+            logger.info("Sending message to RPC channel pipeline,");
+            invoker.invokeAsync(invokeParam)
+                    .addListener((x) -> logger.info("Thrift call sent to downstream service."));
         }
     }
 

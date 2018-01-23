@@ -31,7 +31,7 @@ public class ServiceChannelInitializer extends ChannelInitializer<SocketChannel>
 
         /**
          * temporarily hard coded for experiment.
-         * TODO: init different pipeline according to the remote call.
+         * TODO: init different pipeline according to protocol (and maybe request type like file upload).
          */
         if (protocol.equals("Thrift")) {
             // outbound handlers: encode and send request

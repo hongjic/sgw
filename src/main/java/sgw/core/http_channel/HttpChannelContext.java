@@ -6,19 +6,22 @@ import sgw.core.http_channel.routing.Router;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDetector;
 import sgw.parser.FullHttpRequestParser;
+import sgw.parser.FullHttpResponseGenerator;
 
 /**
- * share data between handlers in the same channel.
+ * share data between handlers in the same httpChannel.
+ * this class will never be shared among threads.
  */
 public final class HttpChannelContext {
 
     private Router router;
     private RpcInvokerDetector invokerDetector;
     private RpcInvoker invoker;
-    private FullHttpRequestParser parser;
+    private FullHttpRequestParser requestParser;
+    private FullHttpResponseGenerator responseGenerator;
     private Object invokeParam;
     private NettyGatewayServerConfig config;
-    private Channel channel;
+    private Channel httpChannel;
 
     public Router getRouter() {
         return router;
@@ -45,11 +48,11 @@ public final class HttpChannelContext {
     }
 
     public FullHttpRequestParser getFullHttpRequestParser() {
-        return parser;
+        return requestParser;
     }
 
     public void setFullHttpRequestParser(FullHttpRequestParser parser) {
-        this.parser = parser;
+        this.requestParser = parser;
     }
 
     public Object getInvokeParam() {
@@ -68,11 +71,19 @@ public final class HttpChannelContext {
         this.config = config;
     }
 
-    public Channel getChannel() {
-        return channel;
+    public Channel getHttpChannel() {
+        return httpChannel;
     }
 
-    public void setChannel(Channel channel) {
-        this.channel = channel;
+    public void setHttpChannel(Channel httpChannel) {
+        this.httpChannel = httpChannel;
+    }
+
+    public FullHttpResponseGenerator getResponseGenerator() {
+        return responseGenerator;
+    }
+
+    public void setFullHttpResponseGenerator(FullHttpResponseGenerator responseGenerator) {
+        this.responseGenerator = responseGenerator;
     }
 }

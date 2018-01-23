@@ -8,9 +8,13 @@ import org.apache.thrift.TException;
 import org.apache.thrift.protocol.*;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TTransport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sgw.core.service_channel.thrift.transport.ByteBufWriteTransport;
 
-public class ThriftEncoder extends MessageToByteEncoder<TWrapper> {
+public class ThriftEncoder extends MessageToByteEncoder<TCallWrapper> {
+
+    private final Logger logger = LoggerFactory.getLogger(ThriftEncoder.class);
     /**
      * // TODO: eanble config
      */
@@ -26,8 +30,8 @@ public class ThriftEncoder extends MessageToByteEncoder<TWrapper> {
     }
 
     @Override
-    public void encode(ChannelHandlerContext ctx, TWrapper wrapper, ByteBuf out) throws TException {
-        ctx.channel().eventLoop();
+    public void encode(ChannelHandlerContext ctx, TCallWrapper wrapper, ByteBuf out) throws TException {
+        logger.info("Start encoding thrift call.");
         writeFrameBuffer(out, wrapper);
         writeSizeBuffer(out);
     }
@@ -39,7 +43,7 @@ public class ThriftEncoder extends MessageToByteEncoder<TWrapper> {
         buf.setBytes(0, i32buf);
     }
 
-    private void writeFrameBuffer(ByteBuf buf, TWrapper wrapper) throws TException {
+    private void writeFrameBuffer(ByteBuf buf, TCallWrapper wrapper) throws TException {
         TBase args = wrapper.getValue();
         String methodName = wrapper.getMethod();
 
@@ -59,7 +63,7 @@ public class ThriftEncoder extends MessageToByteEncoder<TWrapper> {
      * using default initial_capacity and max_frame_length
      */
     @Override
-    protected ByteBuf allocateBuffer(ChannelHandlerContext ctx, @SuppressWarnings("unused") TWrapper msg,
+    protected ByteBuf allocateBuffer(ChannelHandlerContext ctx, @SuppressWarnings("unused") TCallWrapper msg,
                                        boolean preferDirect) {
         if (preferDirect) {
             return ctx.alloc().ioBuffer(INITIAL_BUFFER_SIZE, MAX_BUFFER_SIZE);
