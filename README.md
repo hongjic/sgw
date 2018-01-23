@@ -6,4 +6,4 @@ It receives Https requests from clients, convert it into a corresponding RPC req
 
 The project is being built upon Netty. Still under early development.
 
-[中文文档](https://github.com/hongjic/sgw/blob/master/README_CHN.md)
+[中文文档](./README_CHN.md)

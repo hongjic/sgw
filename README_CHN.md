@@ -19,9 +19,12 @@ Netty基于事件驱动，底层用multiplexing实现NIO。一个EventLoop对应
 
 数据转换器：这个模块项目提供接口，根据具体业务逻辑实现。在路由配置中设置好对应的转换器类名，项目通过反射机制自动导入。
 
-设计目标是下游服务可以采用各种协议。当前的可运行样例主要基于Thrift实现，Protocol采用TCompactProtocol，Transport因为要基于NIO，只能用TFramedTransport。
+设计目标是下游服务可以采用各种协议。当前的可运行样例主要基于Thrift实现，Protocol采用TCompactProtocol，Transport因为要基于NIO，只能用TFramedTransport。服务发现也可以采用各种机制。
 
 设计目标是把所有的IO全部用事件驱动解决，包括服务发现（这个部分还未完成）
+
+加上service discovery的设计图如下，服务发现基于zookeeper（开发中）：
+![](./docs/archi_overview.png)
 
 ## 工作流
 1. **请求路由和服务发现** 接受客户端http请求，通过配置好的路由信息启动路由，找到http请求定义`HttpRequestDef`在路由中找到对应的下游服务信息`RpcInvokerDef`：rpc协议，服务名，方法名，数据转换器。 然后通过服务发现获取服务地址等其他信息，创建`RpcInvoker`实例。
