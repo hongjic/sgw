@@ -28,6 +28,6 @@ public class RouterPropertiesFileCompilerTest {
         assertEquals(invokerDef.getServiceName(), "EchoService");
         assertEquals(invokerDef.getMethodName(), "echo");
         assertEquals(invokerDef.getParamConvertor(), "sgw.parser.EchoServiceEchoParams");
-        assertEquals(invokerDef.getResultConvertor(), "StringToHttpResponse");
+        assertEquals(invokerDef.getResultConvertor(), "sgw.parser.EchoServiceEchoResult");
     }
 }
