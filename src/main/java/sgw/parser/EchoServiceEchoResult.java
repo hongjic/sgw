@@ -6,6 +6,7 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import org.apache.commons.codec.Charsets;
+import sgw.core.data_convertor.FullHttpResponseGenerator;
 
 /**
  * stateless

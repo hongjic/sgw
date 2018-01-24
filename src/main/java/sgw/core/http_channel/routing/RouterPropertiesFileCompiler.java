@@ -3,8 +3,13 @@ package sgw.core.http_channel.routing;
 import io.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sgw.core.data_convertor.Convertors;
+import sgw.core.data_convertor.FullHttpRequestParser;
+import sgw.core.data_convertor.FullHttpResponseGenerator;
 import sgw.core.http_channel.HttpRequestDef;
+import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;
+import sgw.core.service_channel.RpcType;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -53,7 +58,7 @@ public class RouterPropertiesFileCompiler implements RouterGenerator{
     }
 
     @Override
-    public Router generate() throws Exception{
+    public Router generate() throws Exception {
         logger.info("Start generating router.");
 
         Router router = new Router();
@@ -87,7 +92,7 @@ public class RouterPropertiesFileCompiler implements RouterGenerator{
         return router;
     }
 
-    private void addRouting(Router router, String key, String value) {
+    private void addRouting(Router router, String key, String value) throws Exception {
         String[] blocks = key.split("\\.");
         String serviceName = blocks[0];
         String methodName = blocks[1];
@@ -119,10 +124,22 @@ public class RouterPropertiesFileCompiler implements RouterGenerator{
         if (oneRouteFinished(pairs)) {
             HttpMethod method = HttpMethod.valueOf(pairs[METHOD].b);
             HttpRequestDef reqDef = new HttpRequestDef(method, pairs[URI].b);
-            RpcInvokerDef invokerDef = new RpcInvokerDef(serviceName, methodName,
-                    pairs[PARAM_CONVERTOR].b, pairs[RESULT_CONVERTOR].b, pairs[PROTOCOL].b);
+            // TODO: validate convertor and protocol name
+            // TODO: generate stateless convertor here, put into cache.
+            RpcInvokerDef def;
+            try {
+                RpcType protocol = RpcType.valueOf(pairs[PROTOCOL].b);
+                FullHttpRequestParser reqParser = Convertors.Cache.createReqParser(pairs[PARAM_CONVERTOR].b);
+                FullHttpResponseGenerator resGen = Convertors.Cache.createResGen(pairs[RESULT_CONVERTOR].b);
+                def = new RpcInvokerDef(serviceName, methodName,
+                        reqParser, resGen, protocol);
+            } catch (IllegalArgumentException e) {
+                // this is for RpcType.valueOf
+                logger.error("Invalid protocol for {}.{}", serviceName, methodName);
+                throw e;
+            }
             hashMap.remove(t1);
-            router.putRouting(reqDef, invokerDef);
+            router.putRouting(reqDef, def);
         }
     }
 

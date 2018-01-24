@@ -31,7 +31,7 @@ public class ByteBufReadTransport extends TTransport {
         int bytesRemaining = buf.readableBytes();
         int bytesToRead = len > bytesRemaining ? bytesRemaining : len;
         if (bytesToRead > 0)
-            buf.readBytes(buf, off, bytesToRead);
+            buf.readBytes(bytes, off, bytesToRead);
         return bytesToRead;
     }
 
@@ -40,7 +40,7 @@ public class ByteBufReadTransport extends TTransport {
         int bytesRemaining = buf.readableBytes();
         if (len > bytesRemaining)
             throw new TTransportException("not enough reamining bytes for readAll");
-        buf.readBytes(buf, off, len);
+        buf.readBytes(bytes, off, len);
         return len;
     }
 

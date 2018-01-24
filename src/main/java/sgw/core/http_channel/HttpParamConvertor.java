@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_channel.thrift.ThriftCallWrapper;
-import sgw.parser.FullHttpRequestParser;
+import sgw.core.data_convertor.FullHttpRequestParser;
 
 import java.util.List;
 

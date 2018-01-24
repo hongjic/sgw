@@ -2,14 +2,13 @@ package sgw.core.http_channel;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.handler.codec.http.FullHttpResponse;
 import org.apache.thrift.TBase;
 import org.apache.thrift.TFieldIdEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sgw.parser.FullHttpResponseGenerator;
+import sgw.core.data_convertor.FullHttpResponseGenerator;
 
 import java.util.List;
 

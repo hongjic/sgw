@@ -1,4 +1,4 @@
-package sgw.parser;
+package sgw.core.data_convertor;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.FullHttpResponse;

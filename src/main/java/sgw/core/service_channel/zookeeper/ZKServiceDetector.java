@@ -1,6 +1,7 @@
 package sgw.core.service_channel.zookeeper;
 
 import io.netty.channel.ChannelFuture;
+import sgw.core.service_channel.RpcType;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_channel.RpcInvokerDetector;
@@ -28,13 +29,18 @@ public class ZKServiceDetector implements RpcInvokerDetector {
     }
 
     /**
-     * temporary hard coded method.
      * TODO: use findAsync and connectAsync
      */
     @Override
     public RpcInvoker find(RpcInvokerDef invokerDef) throws Exception {
-        // temporary hard code here.
-        SocketAddress remoteAddress = new InetSocketAddress(InetAddress.getLocalHost(), 9090);
-        return new ThriftNonblockingInvoker(invokerDef, remoteAddress);
+        RpcType rpcProtocol = invokerDef.getProtocol();
+
+        switch (rpcProtocol) {
+            case Thrift: {
+                SocketAddress remoteAddress = new InetSocketAddress(InetAddress.getLocalHost(), 9090);
+                return new ThriftNonblockingInvoker(invokerDef, remoteAddress);
+            }
+            default: return null;
+        }
     }
 }

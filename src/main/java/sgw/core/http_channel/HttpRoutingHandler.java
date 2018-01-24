@@ -4,13 +4,14 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sgw.core.data_convertor.Convertors;
 import sgw.core.http_channel.routing.Router;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_channel.RpcInvokerDetector;
 import sgw.core.service_channel.RpcInvokerDetectorFactory;
-import sgw.parser.FullHttpRequestParser;
-import sgw.parser.FullHttpResponseGenerator;
+import sgw.core.data_convertor.FullHttpRequestParser;
+import sgw.core.data_convertor.FullHttpResponseGenerator;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -64,27 +65,14 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
             HttpRequestDef httpRequestDef = new HttpRequestDef(request);
             RpcInvokerDef invokerDef = router.getRpcInvokerDef(httpRequestDef);
 
-            try {
-                /**
-                 * According to invokerDef, bind the right {@link sgw.parser.FullHttpRequestParser} to
-                 * {@link HttpParamConvertor} handler.
-                 */
-                /**
-                 * TODO: initialize frequently used data convertors and save them in a pool for reusement.
-                 * Because reflection is expensive and data convertors are stateless, should be reused.
-                 */
-                Class clazz1 = Class.forName(invokerDef.getParamConvertor());
-                FullHttpRequestParser requestParser = (FullHttpRequestParser) clazz1.newInstance();
-                httpCtx.setFullHttpRequestParser(requestParser);
-
-                Class clazz2 = Class.forName(invokerDef.getResultConvertor());
-                FullHttpResponseGenerator responseGenerator = (FullHttpResponseGenerator) clazz2.newInstance();
-                httpCtx.setFullHttpResponseGenerator(responseGenerator);
-            } catch (ClassNotFoundException e) {
-                logger.error("Cannot find param convertor defined for remote service: {}", invokerDef.toString());
-                e.printStackTrace();
-                ctx.channel().close();
-            }
+            /**
+             * According to invokerDef, bind the right {@link FullHttpRequestParser} to
+             * {@link HttpParamConvertor} handler.
+             */
+            FullHttpRequestParser requestParser = invokerDef.getParamConvertor();
+            httpCtx.setFullHttpRequestParser(requestParser);
+            FullHttpResponseGenerator resGen = invokerDef.getResultConvertor();
+            httpCtx.setFullHttpResponseGenerator(resGen);
 
             // TODO: Async find. Upon success, call ServiceInvokerHandler.connectAndInvoke if invokeParam has been set.
             // temporarily get remote service synchronously.

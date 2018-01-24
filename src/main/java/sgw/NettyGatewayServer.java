@@ -35,7 +35,7 @@ public class NettyGatewayServer {
         try {
             httpChannelInitializer = new HttpChannelInitializer(config);
         } catch (Exception e) {
-            logger.error("HttpChannel initialization failed.");
+            logger.error("Server Initialization failed.");
             throw e;
         }
     }

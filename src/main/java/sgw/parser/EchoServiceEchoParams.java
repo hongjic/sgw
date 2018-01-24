@@ -2,6 +2,7 @@ package sgw.parser;
 
 import io.netty.handler.codec.http.FullHttpRequest;
 import org.apache.commons.codec.Charsets;
+import sgw.core.data_convertor.FullHttpRequestParser;
 
 /**
  * stateless

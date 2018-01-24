@@ -1,15 +1,20 @@
 package sgw.core.service_channel;
 
+import sgw.core.data_convertor.FullHttpRequestParser;
+import sgw.core.data_convertor.FullHttpResponseGenerator;
+
 public class RpcInvokerDef {
 
     private final String serviceName;
     private final String methodName;
-    private final String paramConvertor;
-    private final String resultConvertor;
-    private final String protocol;
+    private final FullHttpRequestParser paramConvertor;
+    private final FullHttpResponseGenerator resultConvertor;
+    private final RpcType protocol;
 
     public RpcInvokerDef(String serviceName, String methodName,
-                         String paramConvertor, String resultConvertor, String protocol) {
+                         FullHttpRequestParser paramConvertor,
+                         FullHttpResponseGenerator resultConvertor,
+                         RpcType protocol) {
         this.serviceName = serviceName;
         this.methodName = methodName;
         this.paramConvertor = paramConvertor;
@@ -25,26 +30,28 @@ public class RpcInvokerDef {
         return methodName;
     }
 
-    public String getParamConvertor() {
+    public FullHttpRequestParser getParamConvertor() {
         return paramConvertor;
     }
 
-    public String getResultConvertor() {
+    public FullHttpResponseGenerator getResultConvertor() {
         return resultConvertor;
     }
 
-    public String getProtocol() {
+    public RpcType getProtocol() {
         return protocol;
     }
 
     @Override
     public String toString() {
         return String.format("[protocol: %s, serviceName: %s, methodName: %s, paramConvertor: %s, resultConvertor]",
-                protocol, serviceName, methodName, paramConvertor, resultConvertor);
+                protocol.toString(), serviceName, methodName,
+                paramConvertor.getClass().getName(),
+                resultConvertor.getClass().getName());
     }
 
     public String toSimpleString() {
         return String.format("[protocol: %s, serviceName: %s, methodName: %s]",
-                protocol, serviceName, methodName);
+                protocol.toString(), serviceName, methodName);
     }
 }
