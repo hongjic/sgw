@@ -2,6 +2,7 @@ package sgw.core.service_channel.thrift.transport;
 
 import io.netty.buffer.ByteBuf;
 import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportException;
 
 public class ByteBufReadTransport extends TTransport {
 
@@ -27,7 +28,19 @@ public class ByteBufReadTransport extends TTransport {
 
     @Override
     public int read(byte[] bytes, int off, int len) {
-        buf.readBytes(bytes, off, len);
+        int bytesRemaining = buf.readableBytes();
+        int bytesToRead = len > bytesRemaining ? bytesRemaining : len;
+        if (bytesToRead > 0)
+            buf.readBytes(buf, off, bytesToRead);
+        return bytesToRead;
+    }
+
+    @Override
+    public int readAll(byte[] bytes, int off, int len) throws TTransportException {
+        int bytesRemaining = buf.readableBytes();
+        if (len > bytesRemaining)
+            throw new TTransportException("not enough reamining bytes for readAll");
+        buf.readBytes(buf, off, len);
         return len;
     }
 
