@@ -30,8 +30,4 @@ public class ByteBufWriteTransport extends TTransport {
         throw new UnsupportedOperationException();
     }
 
-    public ByteBuf getBuf() {
-        return buf;
-    }
-
 }

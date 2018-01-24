@@ -5,10 +5,12 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.handler.codec.http.FullHttpRequest;
 import org.apache.thrift.TBase;
 import org.apache.thrift.TFieldIdEnum;
+import org.apache.thrift.protocol.TMessage;
+import org.apache.thrift.protocol.TMessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.service_channel.RpcInvokerDef;
-import sgw.core.service_channel.thrift.TCallWrapper;
+import sgw.core.service_channel.thrift.ThriftCallWrapper;
 import sgw.parser.FullHttpRequestParser;
 
 import java.util.List;
@@ -37,7 +39,8 @@ public class HttpParamConvertor extends MessageToMessageDecoder<FullHttpRequest>
         RpcInvokerDef invokerDef = httpCtx.getInvoker().getInvokerDef();
 
         TBase<?, TFieldIdEnum> args = createThriftArg(params, invokerDef);
-        TCallWrapper wrapper = new TCallWrapper(args, invokerDef.getMethodName());
+        TMessage message = new TMessage(invokerDef.getMethodName(), TMessageType.CALL, 0);
+        ThriftCallWrapper wrapper = new ThriftCallWrapper(args, message);
         out.add(wrapper);
     }
 
