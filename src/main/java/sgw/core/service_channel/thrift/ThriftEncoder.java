@@ -16,7 +16,7 @@ public class ThriftEncoder extends MessageToByteEncoder<ThriftCallWrapper> {
 
     private final Logger logger = LoggerFactory.getLogger(ThriftEncoder.class);
     /**
-     * // TODO: eanble config
+     *  TODO: eanble config
      */
     private static final int INITIAL_BUFFER_SIZE = 128;
     private static final int MAX_BUFFER_SIZE = 1024*1024*1024;

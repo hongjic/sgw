@@ -1,17 +1,24 @@
 package sgw.core.service_channel;
 
 import sgw.NettyGatewayServerConfig;
-import sgw.core.http_channel.HttpChannelContext;
-import sgw.core.service_channel.thrift.ThriftServiceDetector;
+import sgw.core.service_channel.zookeeper.ZKServiceDetector;
 
 public class RpcInvokerDetectorFactory {
 
-    public RpcInvokerDetectorFactory(NettyGatewayServerConfig config) {
+    private static final String ZOOKEEPER = "zookeeper";
 
+    private String impl;
+
+    public RpcInvokerDetectorFactory(NettyGatewayServerConfig config) {
+        this.impl = config.getServiceDiscoveryImpl();
     }
 
     public RpcInvokerDetector create() {
-        // TODO: create serviceDetector according to config.
-        return new ThriftServiceDetector();
+        switch (impl) {
+            case ZOOKEEPER:
+                return new ZKServiceDetector();
+            default:
+                return null;
+        }
     }
 }
