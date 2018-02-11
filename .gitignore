@@ -78,4 +78,4 @@ atlassian-ide-plugin.xml
 
 gradlew
 gradlew.bat
-gradle
+gradle/*
