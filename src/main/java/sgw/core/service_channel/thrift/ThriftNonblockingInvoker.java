@@ -68,13 +68,13 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
                         connected());
         });
         setState(InvokerState.CONNECTING);
-        logger.info("Connecting remote: " + invokerDef.toSimpleString());
+        logger.info("Connecting remote: " + invokerDef.toString());
         thriftChannel = future.channel();
         return future;
     }
 
     private void connected() {
-        logger.info("Connection established: " + invokerDef.toSimpleString());
+        logger.info("Connection established: " + invokerDef.toString());
         setState(InvokerState.ACTIVE);
     }
 
@@ -96,10 +96,5 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
     @Override
     public void setInboundChannel(Channel channel) {
         inboundChannel = channel;
-    }
-
-    @Override
-    public RpcInvokerDef getInvokerDef() {
-        return invokerDef;
     }
 }

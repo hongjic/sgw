@@ -1,6 +1,5 @@
 package sgw.core.service_discovery.zookeeper;
 
-import io.netty.channel.ChannelFuture;
 import sgw.core.service_channel.RpcType;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;
@@ -33,21 +32,6 @@ public class ZKServiceDiscoverer implements RpcInvokerDiscoverer {
         return serviceNames;
     }
 
-    @Override
-    public ChannelFuture connectAsync(RpcInvokerDef invokerDef) {
-        // TODO: connect service discovery asynchronously.
-        return null;
-    }
-
-    @Override
-    public ChannelFuture findAsync(RpcInvokerDef invokerDef) {
-        // TODO: call serivice discovery asynchronously.
-        return null;
-    }
-
-    /**
-     * TODO: use findAsync and connectAsync
-     */
     @Override
     public RpcInvoker find(RpcInvokerDef invokerDef) throws Exception {
         RpcType rpcProtocol = invokerDef.getProtocol();

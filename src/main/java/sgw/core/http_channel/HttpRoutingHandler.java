@@ -60,21 +60,15 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
             // rpc invoker can be determined as soon as we get HttpRequestDef
             // no need to wait for the full request body arrives.
             HttpRequestDef httpRequestDef = new HttpRequestDef(request);
+
             RpcInvokerDef invokerDef = router.getRpcInvokerDef(httpRequestDef);
-
-            /**
-             * According to invokerDef, bind the right {@link FullHttpRequestParser} to
-             * {@link HttpParamConvertor} handler.
-             */
-            FullHttpRequestParser requestParser = invokerDef.getParamConvertor();
-            httpCtx.setFullHttpRequestParser(requestParser);
-            FullHttpResponseGenerator resGen = invokerDef.getResultConvertor();
-            httpCtx.setFullHttpResponseGenerator(resGen);
-
-            // TODO: Async find. Upon success, call ServiceInvokerHandler.connectAndInvoke if invokeParam has been set.
-            // temporarily get remote service synchronously.
-
             RpcInvoker invoker = invokerDetector.find(invokerDef);
+            FullHttpRequestParser requestParser = router.getRequestParser(httpRequestDef);
+            FullHttpResponseGenerator resGen = router.getResponseGenerator(httpRequestDef);
+
+            httpCtx.setInvokerDef(invokerDef);
+            httpCtx.setFullHttpRequestParser(requestParser);
+            httpCtx.setFullHttpResponseGenerator(resGen);
             httpCtx.setInvoker(invoker);
         }
 

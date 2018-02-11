@@ -23,7 +23,6 @@ public interface RpcInvoker {
 
     ChannelFuture invokeAsync(Object param);
 
-
     void setState(InvokerState state);
 
     void setInboundChannel(Channel channel);
@@ -31,7 +30,5 @@ public interface RpcInvoker {
     Channel getRpcChannel();
 
     InvokerState getState();
-
-    RpcInvokerDef getInvokerDef();
 
 }

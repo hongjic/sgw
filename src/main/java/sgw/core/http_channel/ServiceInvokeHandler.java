@@ -22,7 +22,7 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        httpCtx.setInvokeParam(invokeParam = msg);
+        invokeParam = msg;
 
         Channel inBoundChannel = ctx.channel();
         RpcInvoker invoker = httpCtx.getInvoker();

@@ -21,17 +21,6 @@ public interface RpcInvokerDiscoverer {
 
     List<String> getAllServices();
 
-    /**
-     * Always call connect before find.
-     * @return a ChannelFuture representing the connect request
-     */
-    ChannelFuture connectAsync(RpcInvokerDef invokerDef) throws Exception;
-
-    /**
-     * @return a ChannelFuture representing the find request.
-     */
-    ChannelFuture findAsync(RpcInvokerDef invokerDef) throws Exception;
-
     RpcInvoker find(RpcInvokerDef invokerDef) throws Exception;
 
     enum Impl {

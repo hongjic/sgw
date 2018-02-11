@@ -36,7 +36,7 @@ public class HttpParamConvertor extends MessageToMessageDecoder<FullHttpRequest>
         // parse http request into an array of parameters.
         Object[] params = requestParser.parse(request);
 
-        RpcInvokerDef invokerDef = httpCtx.getInvoker().getInvokerDef();
+        RpcInvokerDef invokerDef = httpCtx.getInvokerDef();
 
         TBase<?, TFieldIdEnum> args = createThriftArg(params, invokerDef);
         TMessage message = new TMessage(invokerDef.getMethodName(), TMessageType.CALL, 0);

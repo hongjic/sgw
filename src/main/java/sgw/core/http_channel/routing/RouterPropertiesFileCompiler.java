@@ -1,5 +1,6 @@
 package sgw.core.http_channel.routing;
 
+import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,19 +128,20 @@ public class RouterPropertiesFileCompiler implements RouterGenerator{
             // TODO: validate convertor and protocol name
             // TODO: generate stateless convertor here, put into cache.
             RpcInvokerDef def;
+            FullHttpRequestParser reqPar;
+            FullHttpResponseGenerator resGen;
             try {
                 RpcType protocol = RpcType.valueOf(pairs[PROTOCOL].b);
-                FullHttpRequestParser reqParser = Convertors.Cache.createReqParser(pairs[PARAM_CONVERTOR].b);
-                FullHttpResponseGenerator resGen = Convertors.Cache.createResGen(pairs[RESULT_CONVERTOR].b);
-                def = new RpcInvokerDef(serviceName, methodName,
-                        reqParser, resGen, protocol);
+                reqPar = Convertors.Cache.createReqParser(pairs[PARAM_CONVERTOR].b);
+                resGen = Convertors.Cache.createResGen(pairs[RESULT_CONVERTOR].b);
+                def = new RpcInvokerDef(serviceName, methodName, protocol);
             } catch (IllegalArgumentException e) {
                 // this is for RpcType.valueOf
                 logger.error("Invalid protocol for {}.{}", serviceName, methodName);
                 throw e;
             }
             hashMap.remove(t1);
-            router.putRouting(reqDef, def);
+            router.putRouting(reqDef, def, reqPar, resGen);
         }
     }
 
