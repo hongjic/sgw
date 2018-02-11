@@ -34,10 +34,12 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
 
     @Override
     public ThriftNonblockingInvoker register(EventLoopGroup group) {
-        bootstrap = new Bootstrap();
-        bootstrap.group(group)
-                .channel(NioSocketChannel.class)
-                .handler(new ServiceChannelInitializer(invokerDef, inboundChannel));
+        if (bootstrap == null) {
+            bootstrap = new Bootstrap();
+            bootstrap.channel(NioSocketChannel.class)
+                    .handler(new ServiceChannelInitializer(invokerDef, inboundChannel));
+        }
+        bootstrap.group(group);
         return this;
     }
 
@@ -46,13 +48,16 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
         if (thriftChannel == null)
             throw new NullPointerException("thriftChannel");
         else if (!thriftChannel.isActive())
-            throw new IllegalStateException("Method invoke() called before channel becomes active.");
+            throw new IllegalStateException("Method invokeAsync() called before channel becomes active.");
         setState(InvokerState.INVOKED);
+        // acutual write op will be executed in the thread where the thrift channel belongs.
         return thriftChannel.writeAndFlush(param);
     }
 
     @Override
     public ChannelFuture connectAsync() {
+        if (bootstrap == null)
+            throw new IllegalStateException("Method connectAsync() called before eventloop registration.");
         ChannelFuture future = bootstrap.connect(remoteAddress);
         future.addListener((ChannelFuture future1) -> {
             EventLoop eventLoop = inboundChannel.eventLoop();

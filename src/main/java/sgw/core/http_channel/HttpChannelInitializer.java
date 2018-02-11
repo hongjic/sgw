@@ -10,14 +10,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.NettyGatewayServerConfig;
 import sgw.core.http_channel.routing.Router;
-import sgw.core.http_channel.routing.RouterGenerator;
 import sgw.core.http_channel.routing.RouterGeneratorFactory;
-import sgw.core.service_channel.RpcInvokerDetector;
+import sgw.core.service_discovery.RpcInvokerDiscoverer;
 
 /**
  * Only created once during server bootstrap.
  * Whenever a new http request comes in, it uses the same {@link HttpChannelInitializer} instance.
- * This gurantees {@link Router} and {@link RpcInvokerDetector} are also created once.
+ * This gurantees {@link Router} and {@link RpcInvokerDiscoverer} are also created once.
  *
  * Shared among threads, need to be thread-safe.
  */
@@ -33,20 +32,37 @@ public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     private final Logger logger = LoggerFactory.getLogger(HttpChannelInitializer.class);
 
-    private HttpChannelContext httpCtx;
+    private NettyGatewayServerConfig config;
 
-    public HttpChannelInitializer(NettyGatewayServerConfig config) throws Exception{
-        httpCtx = new HttpChannelContext();
-        httpCtx.setConfig(config);
-        // init router
-        RouterGenerator routerGenerator = new RouterGeneratorFactory(config.getRouterDataSource()).create();
-        httpCtx.setRouter(routerGenerator.generate());
+    // router is shared among all channels
+    private Router router;
+    private RpcInvokerDiscoverer discoverer;
+
+    public HttpChannelInitializer(NettyGatewayServerConfig config) throws Exception {
+        this.config = config;
+        initRouter();
+        initDiscoverer();
+    }
+
+    private void initRouter() throws Exception {
+        router = new RouterGeneratorFactory(config.getRouterDataSource()).create().generate();
         logger.info("Router initialized.");
+    }
+
+    private void initDiscoverer() throws Exception {
+        discoverer = new RpcInvokerDiscoverer.Builder().loadFromConfig().build();
+        logger.info("Discoverer initialized.");
     }
 
     @Override
     public void initChannel(SocketChannel ch) {
+        // initialize context
+        HttpChannelContext httpCtx = new HttpChannelContext();
+        httpCtx.setConfig(config);
+        httpCtx.setRouter(router);
+        httpCtx.setInvokerDiscoverer(discoverer);
         httpCtx.setHttpChannel(ch);
+
         ChannelPipeline p = ch.pipeline();
         // HttpServerCodec is both inbound and outbound
         p.addLast(HTTP_CODEC, new HttpServerCodec());

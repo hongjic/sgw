@@ -12,7 +12,7 @@ import sgw.core.service_channel.thrift.ThriftEncoder;
 /**
  * Unlike {@link HttpChannelInitializer}, it is not shared among threads.
  * Every new RPC connection will create a brand new {@link ServiceChannelInitializer}
- * backend channel works as a client to the backend services.
+ * backend channel works as a client to the backend withServices.
  */
 public class ServiceChannelInitializer extends ChannelInitializer<SocketChannel> {
 

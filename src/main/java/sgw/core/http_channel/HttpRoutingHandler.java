@@ -4,12 +4,10 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sgw.core.data_convertor.Convertors;
 import sgw.core.http_channel.routing.Router;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;
-import sgw.core.service_channel.RpcInvokerDetector;
-import sgw.core.service_channel.RpcInvokerDetectorFactory;
+import sgw.core.service_discovery.RpcInvokerDiscoverer;
 import sgw.core.data_convertor.FullHttpRequestParser;
 import sgw.core.data_convertor.FullHttpResponseGenerator;
 
@@ -19,7 +17,7 @@ import java.net.URISyntaxException;
 /**
  * {@link HttpRoutingHandler} first finds {@link RpcInvokerDef} according to the
  * registered {@link Router}, then gets the actual remote address (included in
- * {@link RpcInvoker}) using the service definition via {@link RpcInvokerDetector}.
+ * {@link RpcInvoker}) using the service definition via {@link RpcInvokerDiscoverer}.
  * Finally, it connects to the remote peer, creates a new {@link Channel} and
  * send the parsed Http request to that backend channel for further process.
  */
@@ -37,8 +35,7 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         Router router = httpCtx.getRouter();
         // init service detector
-        RpcInvokerDetector invokerDetector = new RpcInvokerDetectorFactory(httpCtx.getConfig()).create();
-        httpCtx.setInvokerDetector(invokerDetector);
+        RpcInvokerDiscoverer invokerDetector = httpCtx.getInvokerDiscoverer();
 
         /**
          * msg types:
@@ -76,6 +73,7 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
 
             // TODO: Async find. Upon success, call ServiceInvokerHandler.connectAndInvoke if invokeParam has been set.
             // temporarily get remote service synchronously.
+
             RpcInvoker invoker = invokerDetector.find(invokerDef);
             httpCtx.setInvoker(invoker);
         }
