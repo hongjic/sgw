@@ -20,12 +20,13 @@ public class ServiceProvider {
     private String ZKPrefixPath;
     private CuratorFramework client;
     private TreeCache ZKCache;
-    private final RoundRobinLoadBalancer<ServiceNode> loadBalancer;
+    private final LoadBalancer<ServiceNode> loadBalancer;
 
     public ServiceProvider(String serviceRegName, CuratorFramework ZkClient) {
         serviceName = serviceRegName;
         ZKPrefixPath = "/" + serviceName + "/servers";
         client = ZkClient;
+        // use RoundRobinLoadBalancer as default
         loadBalancer = new RoundRobinLoadBalancer<>();
     }
 
