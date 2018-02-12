@@ -23,6 +23,10 @@ public interface RpcInvokerDiscoverer {
 
     RpcInvoker find(RpcInvokerDef invokerDef) throws Exception;
 
+    void start() throws Exception;
+
+    void close();
+
     enum Impl {
         Zookeeper
     }
@@ -73,10 +77,12 @@ public interface RpcInvokerDiscoverer {
             return this;
         }
 
-        public RpcInvokerDiscoverer build() {
+        public RpcInvokerDiscoverer build() throws Exception {
             switch (impl) {
                 case Zookeeper:
-                    return new ZKServiceDiscoverer(serviceNames);
+                    return new ZKServiceDiscoverer.Builder()
+                            .loadFromConfig()
+                            .build(serviceNames);
                 default:
                     return null;
             }

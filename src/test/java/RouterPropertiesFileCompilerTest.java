@@ -1,5 +1,7 @@
 import io.netty.handler.codec.http.HttpMethod;
 import org.junit.Test;
+import sgw.core.data_convertor.FullHttpRequestParser;
+import sgw.core.data_convertor.FullHttpResponseGenerator;
 import sgw.core.http_channel.HttpRequestDef;
 import sgw.core.http_channel.routing.*;
 import sgw.core.service_channel.RpcInvokerDef;
@@ -24,10 +26,13 @@ public class RouterPropertiesFileCompilerTest {
         }
         HttpRequestDef reqDef = new HttpRequestDef(HttpMethod.POST, "/aaa");
         RpcInvokerDef invokerDef = router.getRpcInvokerDef(reqDef);
-
         assertEquals(invokerDef.getServiceName(), "EchoService");
         assertEquals(invokerDef.getMethodName(), "echo");
-        assertEquals(invokerDef.getParamConvertor().getClass().getName(), "sgw.parser.EchoServiceEchoParams");
-        assertEquals(invokerDef.getResultConvertor().getClass().getName(), "sgw.parser.EchoServiceEchoResult");
+
+        FullHttpRequestParser reqPar = router.getRequestParser(reqDef);
+        assertEquals(reqPar.getClass().getName(), "sgw.parser.EchoServiceEchoParams");
+
+        FullHttpResponseGenerator resGen = router.getResponseGenerator(reqDef);
+        assertEquals(resGen.getClass().getName(), "sgw.parser.EchoServiceEchoResult");
     }
 }

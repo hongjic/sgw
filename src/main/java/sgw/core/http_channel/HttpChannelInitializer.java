@@ -51,6 +51,8 @@ public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     private void initDiscoverer() throws Exception {
         discoverer = new RpcInvokerDiscoverer.Builder().loadFromConfig().build();
+        // start listening and auto sync metadata changes.
+        discoverer.start();
         logger.info("Discoverer initialized.");
     }
 
