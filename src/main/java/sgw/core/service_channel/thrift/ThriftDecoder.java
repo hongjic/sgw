@@ -5,10 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import org.apache.thrift.TApplicationException;
 import org.apache.thrift.TBase;
-import org.apache.thrift.protocol.TCompactProtocol;
-import org.apache.thrift.protocol.TMessage;
-import org.apache.thrift.protocol.TMessageType;
-import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.protocol.*;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
@@ -58,7 +55,9 @@ public class ThriftDecoder extends ByteToMessageDecoder {
 
     private Object decodeFrame(ByteBuf buf) throws Exception {
         TTransport transport = new ByteBufReadTransport(buf);
-        TProtocol protocol = new TCompactProtocol.Factory().getProtocol(transport);
+        TProtocol basicProtocol = new TCompactProtocol.Factory().getProtocol(transport);
+        TProtocol protocol = new TMultiplexedProtocol(basicProtocol, invokerDef.getServiceName().toLowerCase());
+
         String clazzName = String.format(RESULT_PATH_FORMAT,
                 invokerDef.getServiceName(), invokerDef.getMethodName());
         TBase result;

@@ -46,13 +46,15 @@ public class ThriftEncoder extends MessageToByteEncoder<ThriftCallWrapper> {
     private void writeFrameBuffer(ByteBuf buf, ThriftCallWrapper wrapper) throws TException {
         TBase args = wrapper.getArgs();
         TMessage message = wrapper.getMessage();
+        String serviceName = wrapper.getServiceName();
 
         // Leave space to write frame size. Use the same Bytebuf to avoid data copy.
         buf.setIndex(0, 4);
 
         // write frame buffer
         TTransport transport = new ByteBufWriteTransport(buf);
-        TProtocol protocol = new TCompactProtocol.Factory().getProtocol(transport);
+        TProtocol basicProtocol = new TCompactProtocol.Factory().getProtocol(transport);
+        TProtocol protocol = new TMultiplexedProtocol(basicProtocol, serviceName);
         protocol.writeMessageBegin(message);
         args.write(protocol);
         protocol.writeMessageEnd();

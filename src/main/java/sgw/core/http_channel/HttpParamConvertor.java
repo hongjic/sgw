@@ -40,7 +40,8 @@ public class HttpParamConvertor extends MessageToMessageDecoder<FullHttpRequest>
 
         TBase<?, TFieldIdEnum> args = createThriftArg(params, invokerDef);
         TMessage message = new TMessage(invokerDef.getMethodName(), TMessageType.CALL, 0);
-        ThriftCallWrapper wrapper = new ThriftCallWrapper(args, message);
+        String serviceName = invokerDef.getServiceName().toLowerCase();
+        ThriftCallWrapper wrapper = new ThriftCallWrapper(args, message, serviceName);
         out.add(wrapper);
     }
 

@@ -11,13 +11,16 @@ public class ThriftCallWrapper {
     private TBase args;
     private TMessage message;
 
+    private String serviceName; // lowercase
+
     /**
      * @param args parameters of the thrift call
      * @param message header of thrift request
      */
-    public ThriftCallWrapper(TBase args, TMessage message) {
+    public ThriftCallWrapper(TBase args, TMessage message, String serviceName) {
         this.args = args;
         this.message = message;
+        this.serviceName = serviceName;
     }
 
     public TBase getArgs() {
@@ -26,5 +29,9 @@ public class ThriftCallWrapper {
 
     public TMessage getMessage() {
         return message;
+    }
+
+    public String getServiceName() {
+        return serviceName;
     }
 }

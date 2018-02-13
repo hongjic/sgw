@@ -136,14 +136,14 @@ public class ZKServiceDiscoverer implements RpcInvokerDiscoverer {
 
     }
 
-    public static void main(String[] args) {
-        Builder builder = new Builder();
-        try {
-            ZKServiceDiscoverer discoverer = builder.loadFromConfig().build(Arrays.asList("EchoService"));
-            discoverer.start();
-            Thread.sleep(100000);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    public static void main(String[] args) {
+//        Builder builder = new Builder();
+//        try {
+//            ZKServiceDiscoverer discoverer = builder.loadFromConfig().build(Arrays.asList("EchoService"));
+//            discoverer.start();
+//            Thread.sleep(100000);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }
