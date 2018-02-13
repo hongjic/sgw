@@ -7,6 +7,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.apache.thrift.TBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sgw.core.service_channel.thrift.ThriftCallWrapper;
 
 public class RpcFinalHandler extends ChannelInboundHandlerAdapter {
 
@@ -20,7 +21,7 @@ public class RpcFinalHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        if (msg instanceof TBase) {
+        if (msg instanceof ThriftCallWrapper) {
             logger.info("Sending decoded thrift response back to Http channel pipeline.");
             writeBackToHttpChannel(msg);
         }

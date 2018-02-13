@@ -22,16 +22,18 @@ public class ThriftEncoder extends MessageToByteEncoder<ThriftCallWrapper> {
     private static final int MAX_BUFFER_SIZE = 1024*1024*1024;
     private final byte[] i32buf = new byte[4];
 
-    /**
-     * @param preferDirect whether using direct buffer as decode output.
-     */
-    public ThriftEncoder(boolean preferDirect) {
-        super(preferDirect);
+    private ThriftChannelContext thriftCtx;
+
+
+    public ThriftEncoder(ThriftChannelContext thriftCtx) {
+        super();
+        this.thriftCtx = thriftCtx;
     }
 
     @Override
     public void encode(ChannelHandlerContext ctx, ThriftCallWrapper wrapper, ByteBuf out) throws TException {
         logger.info("Start encoding thrift call.");
+        thriftCtx.setCallWrapper(wrapper);
         writeFrameBuffer(out, wrapper);
         writeSizeBuffer(out);
     }
@@ -60,10 +62,6 @@ public class ThriftEncoder extends MessageToByteEncoder<ThriftCallWrapper> {
         protocol.writeMessageEnd();
     }
 
-    /**
-     * TODO: enable config
-     * using default initial_capacity and max_frame_length
-     */
     @Override
     protected ByteBuf allocateBuffer(ChannelHandlerContext ctx, @SuppressWarnings("unused") ThriftCallWrapper msg,
                                        boolean preferDirect) {

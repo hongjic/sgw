@@ -5,6 +5,7 @@ import io.netty.channel.socket.SocketChannel;
 import sgw.core.http_channel.HttpChannelInitializer;
 import sgw.core.http_channel.HttpParamConvertor;
 import sgw.core.http_channel.ResultHttpConvertor;
+import sgw.core.service_channel.thrift.ThriftChannelContext;
 import sgw.core.service_channel.thrift.ThriftDecoder;
 import sgw.core.service_channel.thrift.ThriftEncoder;
 
@@ -35,11 +36,13 @@ public class ServiceChannelInitializer extends ChannelInitializer<SocketChannel>
          */
         switch (protocol) {
             case Thrift: {
+                ThriftChannelContext thriftCtx = new ThriftChannelContext();
+
                 // outbound handlers: encode and send request
-                pipeline.addLast("thriftEncoder", new ThriftEncoder(true));
+                pipeline.addLast("thriftEncoder", new ThriftEncoder(thriftCtx));
 
                 // inbound handlers: receive and decode response
-                pipeline.addLast("thriftDecoder", new ThriftDecoder(invokerDef));
+                pipeline.addLast("thriftDecoder", new ThriftDecoder(thriftCtx));
                 /**
                  * Send the generated http response back to the http channel.
                  * Probably its the always the same despite the rpc protocol we use.

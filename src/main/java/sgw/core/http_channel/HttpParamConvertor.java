@@ -21,6 +21,7 @@ public class HttpParamConvertor extends MessageToMessageDecoder<FullHttpRequest>
 
     // TODO: support configuration
     private static final String ARG_PATH_FORMAT = "examples.thrift_service.%s$%s_args";
+    private static final String RESULT_PATH_FORMAT = "examples.thrift_service.%s$%s_result";
 
     private HttpChannelContext httpCtx;
 
@@ -39,9 +40,10 @@ public class HttpParamConvertor extends MessageToMessageDecoder<FullHttpRequest>
         RpcInvokerDef invokerDef = httpCtx.getInvokerDef();
 
         TBase<?, TFieldIdEnum> args = createThriftArg(params, invokerDef);
+        TBase result = createThriftResult(invokerDef);
         TMessage message = new TMessage(invokerDef.getMethodName(), TMessageType.CALL, 0);
         String serviceName = invokerDef.getServiceName().toLowerCase();
-        ThriftCallWrapper wrapper = new ThriftCallWrapper(args, message, serviceName);
+        ThriftCallWrapper wrapper = new ThriftCallWrapper(args, result, message, serviceName);
         out.add(wrapper);
     }
 
@@ -64,6 +66,20 @@ public class HttpParamConvertor extends MessageToMessageDecoder<FullHttpRequest>
             throw e;
         }
         return args;
+    }
+
+    private TBase createThriftResult(RpcInvokerDef invokerDef) throws Exception {
+        TBase result;
+        String clazzName = String.format(RESULT_PATH_FORMAT,
+                invokerDef.getServiceName(), invokerDef.getMethodName());
+        try {
+            Class<?> clazz = Class.forName(clazzName);
+            result = (TBase) clazz.newInstance();
+        } catch (ClassNotFoundException e) {
+            logger.error("Thrift class named as {} can not be found.", clazzName);
+            throw e;
+        }
+        return result;
     }
 
     @Override

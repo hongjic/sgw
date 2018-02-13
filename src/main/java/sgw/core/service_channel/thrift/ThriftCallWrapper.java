@@ -9,16 +9,20 @@ import org.apache.thrift.protocol.TMessage;
 public class ThriftCallWrapper {
 
     private TBase args;
+    private TBase result;
     private TMessage message;
 
-    private String serviceName; // lowercase
+    private String serviceName; // lowercase, necessary for TMultiplexedProtocol
 
     /**
-     * @param args parameters of the thrift call
+     * @param thriftArgs parameters of the thrift call
+     * @param thriftResult thrift call result
      * @param message header of thrift request
+     * @param serviceName thrift service name
      */
-    public ThriftCallWrapper(TBase args, TMessage message, String serviceName) {
-        this.args = args;
+    public ThriftCallWrapper(TBase thriftArgs, TBase thriftResult, TMessage message, String serviceName) {
+        this.args = thriftArgs;
+        this.result = thriftResult;
         this.message = message;
         this.serviceName = serviceName;
     }
@@ -33,5 +37,9 @@ public class ThriftCallWrapper {
 
     public String getServiceName() {
         return serviceName;
+    }
+
+    public TBase getResult() {
+        return result;
     }
 }

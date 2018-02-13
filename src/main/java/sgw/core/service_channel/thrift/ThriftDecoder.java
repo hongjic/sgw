@@ -19,17 +19,14 @@ public class ThriftDecoder extends ByteToMessageDecoder {
 
     private final Logger logger = LoggerFactory.getLogger(ThriftDecoder.class);
 
-    // TODO: support configuration
-    private static final String RESULT_PATH_FORMAT = "examples.thrift_service.%s$%s_result";
-
     private final byte[] i32buf = new byte[4];
     private int frameSize;
     private boolean sizeDecoded;
-    private RpcInvokerDef invokerDef;
+    private ThriftChannelContext thriftCtx;
 
-    public ThriftDecoder(RpcInvokerDef invokerDef) {
+    public ThriftDecoder(ThriftChannelContext thriftCtx) {
         sizeDecoded = false;
-        this.invokerDef = invokerDef;
+        this.thriftCtx = thriftCtx;
     }
 
     @Override
@@ -40,7 +37,9 @@ public class ThriftDecoder extends ByteToMessageDecoder {
         }
 
         if (sizeDecoded && buf.readableBytes() >= frameSize) {
-            out.add(decodeFrame(buf));
+            ThriftCallWrapper wrapper = thriftCtx.getCallWrapper();
+            decodeFrame(wrapper, buf);
+            out.add(wrapper);
         }
     }
 
@@ -53,18 +52,15 @@ public class ThriftDecoder extends ByteToMessageDecoder {
         }
     }
 
-    private Object decodeFrame(ByteBuf buf) throws Exception {
+    private void decodeFrame(ThriftCallWrapper wrapper, ByteBuf buf) throws Exception {
+        String serviceName = wrapper.getServiceName();
+
         TTransport transport = new ByteBufReadTransport(buf);
         TProtocol basicProtocol = new TCompactProtocol.Factory().getProtocol(transport);
-        TProtocol protocol = new TMultiplexedProtocol(basicProtocol, invokerDef.getServiceName().toLowerCase());
-
-        String clazzName = String.format(RESULT_PATH_FORMAT,
-                invokerDef.getServiceName(), invokerDef.getMethodName());
-        TBase result;
+        TProtocol protocol = new TMultiplexedProtocol(basicProtocol, serviceName);
 
         try {
-            Class<?> clazz = Class.forName(clazzName);
-            result = (TBase) clazz.newInstance();
+            TBase result = wrapper.getResult();
 
             TMessage msg = protocol.readMessageBegin();
             if (msg.type == TMessageType.EXCEPTION) {
@@ -77,16 +73,10 @@ public class ThriftDecoder extends ByteToMessageDecoder {
             // TODO: netty reuse connection? Is a out of order situation possible?
             result.read(protocol);
             protocol.readMessageEnd();
-        } catch (ClassNotFoundException e) {
-            // Deal wiht ClassNotFoundException separately here. Later all Exceptions will be
-            // converted into DecoderException.
-            logger.error("Thrift class named as {} can not be found.", clazzName);
-            throw e;
         } catch (TApplicationException e) {
             logger.error("Respose type: Exception");
             throw e;
         }
-        return result;
     }
 
     @Override

@@ -9,10 +9,11 @@ import org.apache.thrift.TFieldIdEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.data_convertor.FullHttpResponseGenerator;
+import sgw.core.service_channel.thrift.ThriftCallWrapper;
 
 import java.util.List;
 
-public class ResultHttpConvertor extends MessageToMessageEncoder<TBase> {
+public class ResultHttpConvertor extends MessageToMessageEncoder<ThriftCallWrapper> {
 
     private final Logger logger = LoggerFactory.getLogger(ResultHttpConvertor.class);
 
@@ -27,7 +28,8 @@ public class ResultHttpConvertor extends MessageToMessageEncoder<TBase> {
      * @param out only return a http response
      */
     @Override
-    public void encode(ChannelHandlerContext ctx, TBase result, List<Object> out) {
+    public void encode(ChannelHandlerContext ctx, ThriftCallWrapper wrapper, List<Object> out) {
+        TBase result = wrapper.getResult();
         FullHttpResponseGenerator responseGenerator = httpCtx.getResponseGenerator();
         logger.info("Converting Thrift response to Http response BY {}",
                 responseGenerator.getClass().getName());
