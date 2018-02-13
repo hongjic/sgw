@@ -54,8 +54,7 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
                 return;
             }
 
-            logger.info("HttpRequest Method : {}", method);
-            logger.info("HttpRequest URI: {}", uri.toString());
+            logger.info("Receive Http Request: {} {}", method, uri.toString());
 
             // rpc invoker can be determined as soon as we get HttpRequestDef
             // no need to wait for the full request body arrives.
