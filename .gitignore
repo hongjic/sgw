@@ -79,3 +79,5 @@ atlassian-ide-plugin.xml
 gradlew
 gradlew.bat
 gradle/*
+
+docs/archi_overview.png
