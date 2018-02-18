@@ -9,6 +9,8 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.NettyGatewayServerConfig;
+import sgw.core.filters.PostRoutingFiltersHandler;
+import sgw.core.filters.PreRoutingFiltersHandler;
 import sgw.core.http_channel.routing.Router;
 import sgw.core.http_channel.routing.RouterGeneratorFactory;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
@@ -24,6 +26,8 @@ import sgw.core.service_discovery.RpcInvokerDiscoverer;
 public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     public static final String HTTP_CODEC = "http_codec";
+    public static final String PRE_FILTER = "pre_filter";
+    public static final String POST_FILTER = "post_filter";
     public static final String SERVICE_DISCOVERY = "service_discovery";
     public static final String HTTP_AGGREGATOR = "http_aggregator";
     public static final String HTTP_TO_PARAM = "http_to_param";
@@ -64,18 +68,23 @@ public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
         httpCtx.setRouter(router);
         httpCtx.setInvokerDiscoverer(discoverer);
         httpCtx.setHttpChannel(ch);
+        httpCtx.setContinueProcessing(true);
+
+//        int maxContentLength = NettyGatewayServerConfig.getCurrentConfig().getMaxHttpContentLength();
+        int maxContentLength = config.getMaxHttpContentLength();
 
         ChannelPipeline p = ch.pipeline();
-        // HttpServerCodec is both inbound and outbound
-        p.addLast(HTTP_CODEC, new HttpServerCodec());
+        // codec
+        p.addLast(HTTP_CODEC, new HttpServerCodec()); // HttpServerCodec is both inbound and outbound
+
+        // channel outbound handlers
+        p.addLast(POST_FILTER, new PostRoutingFiltersHandler(httpCtx)); // filter handler
         p.addLast(RESULT_TO_HTTP, new ResultHttpConvertor(httpCtx));
 
-        // ChannelInboundHandler
-        p.addLast(SERVICE_DISCOVERY, new HttpRoutingHandler(httpCtx));
-
-        int maxContentLength = NettyGatewayServerConfig.getCurrentConfig().getMaxHttpContentLength();
+        // channel inbound handlers
         p.addLast(HTTP_AGGREGATOR, new HttpObjectAggregator(maxContentLength));
-
+        p.addLast(PRE_FILTER, new PreRoutingFiltersHandler(httpCtx)); // filter handler
+        p.addLast(SERVICE_DISCOVERY, new HttpRoutingHandler(httpCtx));
         p.addLast(HTTP_TO_PARAM, new HttpParamConvertor(httpCtx));
         p.addLast(SERVICE_INVOKER, new ServiceInvokeHandler(httpCtx));
     }

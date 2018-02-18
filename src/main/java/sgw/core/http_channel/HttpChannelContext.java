@@ -1,7 +1,10 @@
 package sgw.core.http_channel;
 
 import io.netty.channel.Channel;
+import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpResponse;
 import sgw.NettyGatewayServerConfig;
+import sgw.core.filters.FastResponseMessage;
 import sgw.core.http_channel.routing.Router;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;
@@ -9,82 +12,120 @@ import sgw.core.service_discovery.RpcInvokerDiscoverer;
 import sgw.core.data_convertor.FullHttpRequestParser;
 import sgw.core.data_convertor.FullHttpResponseGenerator;
 
+import java.util.HashMap;
+
 /**
  * share data between handlers in the same httpChannel.
  * this class will never be shared among threads.
  */
-public final class HttpChannelContext {
+public final class HttpChannelContext extends HashMap<String, Object> {
 
-    private Router router;
-    private RpcInvokerDiscoverer invokerDiscoverer;
-    private RpcInvoker invoker;
-    private RpcInvokerDef invokerDef;
-    private FullHttpRequestParser requestParser;
-    private FullHttpResponseGenerator responseGenerator;
-    private NettyGatewayServerConfig config;
-    private Channel httpChannel;
+    private static final String HTTP_REQUEST = "http_request";
+    private static final String HTTP_RESPONSE = "http_response";
+    private static final String CONTINUE_PROCESSING = "continue_processing";
+    private static final String FAST_RESPONSE_MESSAGE = "fast_response_message";
+    private static final String ROUTER = "router";
+    private static final String INVOKER_DISCOVERER = "invoker_discoverer";
+    private static final String INVOKER = "invoker";
+    private static final String INVOKER_DEF = "invoker_def";
+    private static final String REQUEST_PARSER = "request_parser";
+    private static final String RESPONSE_GENERATOR = "response_generator";
+    private static final String GATEWAY_SERVER_CONFIG = "gateway_server_config";
+    private static final String HTTP_CHANNEL = "http_channel";
+
+    public HttpRequest getHttpRequest() {
+        return (HttpRequest) get(HTTP_REQUEST);
+    }
+
+    public void setHttpRequest(HttpRequest httpRequest) {
+        put(HTTP_REQUEST, httpRequest);
+    }
+
+    public HttpResponse getHttpResponse() {
+        return (HttpResponse) get(HTTP_RESPONSE);
+    }
+
+    public void setHttpResponse(HttpResponse httpResponse) {
+        put(HTTP_RESPONSE, httpResponse);
+    }
+
+    public boolean getContinueProcessing() {
+        return (boolean) get(CONTINUE_PROCESSING);
+    }
+
+    public void setContinueProcessing(boolean con) {
+        put(CONTINUE_PROCESSING, con);
+    }
+
+    public void setFastResponseMessage(FastResponseMessage message) {
+        put(FAST_RESPONSE_MESSAGE, message);
+    }
+
+    public FastResponseMessage getFastResponseMessage() {
+        return (FastResponseMessage) get(FAST_RESPONSE_MESSAGE);
+    }
 
     public Router getRouter() {
-        return router;
+        return (Router) get(ROUTER);
     }
 
     public RpcInvokerDiscoverer getInvokerDiscoverer() {
-        return invokerDiscoverer;
+        return (RpcInvokerDiscoverer) get(INVOKER_DISCOVERER);
     }
 
     public void setInvokerDiscoverer(RpcInvokerDiscoverer invokerDiscoverer) {
-        this.invokerDiscoverer = invokerDiscoverer;
+        put(INVOKER_DISCOVERER, invokerDiscoverer);
     }
 
     public void setRouter(Router router) {
-        this.router = router;
+        put(ROUTER, router);
     }
 
     public RpcInvoker getInvoker() {
-        return invoker;
+        return (RpcInvoker) get(INVOKER);
     }
 
     public void setInvoker(RpcInvoker invoker) {
-        this.invoker = invoker;
+        put(INVOKER, invoker);
     }
 
     public FullHttpRequestParser getFullHttpRequestParser() {
-        return requestParser;
+        return (FullHttpRequestParser) get(REQUEST_PARSER);
     }
 
     public void setFullHttpRequestParser(FullHttpRequestParser parser) {
-        this.requestParser = parser;
+        put(REQUEST_PARSER, parser);
     }
 
     public NettyGatewayServerConfig getConfig() {
-        return config;
+        return (NettyGatewayServerConfig) get(GATEWAY_SERVER_CONFIG);
     }
 
     public void setConfig(NettyGatewayServerConfig config) {
-        this.config = config;
+        put(GATEWAY_SERVER_CONFIG, config);
     }
 
     public Channel getHttpChannel() {
-        return httpChannel;
+        return (Channel) get(HTTP_CHANNEL);
     }
 
     public void setHttpChannel(Channel httpChannel) {
-        this.httpChannel = httpChannel;
+        put(HTTP_CHANNEL, httpChannel);
     }
 
     public FullHttpResponseGenerator getResponseGenerator() {
-        return responseGenerator;
+        return (FullHttpResponseGenerator) get(RESPONSE_GENERATOR);
     }
 
     public void setFullHttpResponseGenerator(FullHttpResponseGenerator responseGenerator) {
-        this.responseGenerator = responseGenerator;
+        put(RESPONSE_GENERATOR, responseGenerator);
     }
 
     public void setInvokerDef(RpcInvokerDef invokerDef) {
-        this.invokerDef = invokerDef;
+        put(INVOKER_DEF, invokerDef);
     }
 
     public RpcInvokerDef getInvokerDef() {
-        return invokerDef;
+        return (RpcInvokerDef) get(INVOKER_DEF);
     }
 }

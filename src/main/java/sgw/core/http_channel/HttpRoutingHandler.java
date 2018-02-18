@@ -18,8 +18,6 @@ import java.net.URISyntaxException;
  * {@link HttpRoutingHandler} first finds {@link RpcInvokerDef} according to the
  * registered {@link Router}, then gets the actual remote address (included in
  * {@link RpcInvoker}) using the service definition via {@link RpcInvokerDiscoverer}.
- * Finally, it connects to the remote peer, creates a new {@link Channel} and
- * send the parsed Http request to that backend channel for further process.
  */
 public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
 
@@ -38,38 +36,34 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
         RpcInvokerDiscoverer invokerDetector = httpCtx.getInvokerDiscoverer();
 
         /**
-         * msg types:
-         * {@link HttpRequest}
-         * {@link HttpContent}
+         * msg type: {@link FullHttpRequest}
          */
-        if (msg instanceof HttpRequest) {
-            HttpRequest request = (HttpRequest) msg;
-            HttpMethod method = request.method();
-            URI uri;
-            try {
-                uri = new URI(request.uri());
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-                ctx.channel().close();
-                return;
-            }
-
-            logger.info("Receive Http Request: {} {}", method, uri.toString());
-
-            // rpc invoker can be determined as soon as we get HttpRequestDef
-            // no need to wait for the full request body arrives.
-            HttpRequestDef httpRequestDef = new HttpRequestDef(request);
-
-            RpcInvokerDef invokerDef = router.getRpcInvokerDef(httpRequestDef);
-            RpcInvoker invoker = invokerDetector.find(invokerDef);
-            FullHttpRequestParser requestParser = router.getRequestParser(httpRequestDef);
-            FullHttpResponseGenerator resGen = router.getResponseGenerator(httpRequestDef);
-
-            httpCtx.setInvokerDef(invokerDef);
-            httpCtx.setFullHttpRequestParser(requestParser);
-            httpCtx.setFullHttpResponseGenerator(resGen);
-            httpCtx.setInvoker(invoker);
+        HttpRequest request = (HttpRequest) msg;
+        HttpMethod method = request.method();
+        URI uri;
+        try {
+            uri = new URI(request.uri());
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            ctx.channel().close();
+            return;
         }
+
+        logger.info("Receive Http Request: {} {}", method, uri.toString());
+
+        // rpc invoker can be determined as soon as we get HttpRequestDef
+        // no need to wait for the full request body arrives.
+        HttpRequestDef httpRequestDef = new HttpRequestDef(request);
+
+        RpcInvokerDef invokerDef = router.getRpcInvokerDef(httpRequestDef);
+        RpcInvoker invoker = invokerDetector.find(invokerDef);
+        FullHttpRequestParser requestParser = router.getRequestParser(httpRequestDef);
+        FullHttpResponseGenerator resGen = router.getResponseGenerator(httpRequestDef);
+
+        httpCtx.setInvokerDef(invokerDef);
+        httpCtx.setFullHttpRequestParser(requestParser);
+        httpCtx.setFullHttpResponseGenerator(resGen);
+        httpCtx.setInvoker(invoker);
 
         // send to Http aggregator handler.
         ctx.fireChannelRead(msg);
