@@ -1,4 +1,4 @@
-package sgw.core.http_channel;
+package sgw.core.http_channel.thrift;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -9,17 +9,18 @@ import org.apache.thrift.TFieldIdEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.data_convertor.FullHttpResponseGenerator;
+import sgw.core.http_channel.HttpChannelContext;
 import sgw.core.service_channel.thrift.ThriftCallWrapper;
 
 import java.util.List;
 
-public class ResultHttpConvertor extends MessageToMessageEncoder<ThriftCallWrapper> {
+public class ThriftToHttpRsp extends MessageToMessageEncoder<ThriftCallWrapper> {
 
-    private final Logger logger = LoggerFactory.getLogger(ResultHttpConvertor.class);
+    private final Logger logger = LoggerFactory.getLogger(ThriftToHttpRsp.class);
 
     private HttpChannelContext httpCtx;
 
-    public ResultHttpConvertor(HttpChannelContext httpCtx) {
+    public ThriftToHttpRsp(HttpChannelContext httpCtx) {
         this.httpCtx = httpCtx;
     }
 

@@ -1,4 +1,4 @@
-package sgw.core.http_channel;
+package sgw.core.http_channel.thrift;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
@@ -9,15 +9,16 @@ import org.apache.thrift.protocol.TMessage;
 import org.apache.thrift.protocol.TMessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sgw.core.http_channel.HttpChannelContext;
 import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_channel.thrift.ThriftCallWrapper;
 import sgw.core.data_convertor.FullHttpRequestParser;
 
 import java.util.List;
 
-public class HttpParamConvertor extends MessageToMessageDecoder<FullHttpRequest>{
+public class HttpReqToThrift extends MessageToMessageDecoder<FullHttpRequest>{
 
-    private final Logger logger = LoggerFactory.getLogger(HttpParamConvertor.class);
+    private final Logger logger = LoggerFactory.getLogger(HttpReqToThrift.class);
 
     // TODO: support configuration
     private static final String ARG_PATH_FORMAT = "examples.thrift_service.%s$%s_args";
@@ -25,7 +26,7 @@ public class HttpParamConvertor extends MessageToMessageDecoder<FullHttpRequest>
 
     private HttpChannelContext httpCtx;
 
-    public HttpParamConvertor(HttpChannelContext httpCtx) {
+    public HttpReqToThrift(HttpChannelContext httpCtx) {
         this.httpCtx = httpCtx;
     }
 

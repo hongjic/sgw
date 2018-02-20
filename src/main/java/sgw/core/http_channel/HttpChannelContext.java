@@ -1,10 +1,10 @@
 package sgw.core.http_channel;
 
 import io.netty.channel.Channel;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.FullHttpResponse;
 import sgw.NettyGatewayServerConfig;
-import sgw.core.filters.FastResponseMessage;
+import sgw.core.filters.FastMessage;
 import sgw.core.http_channel.routing.Router;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;
@@ -23,7 +23,7 @@ public final class HttpChannelContext extends HashMap<String, Object> {
     private static final String HTTP_REQUEST = "http_request";
     private static final String HTTP_RESPONSE = "http_response";
     private static final String CONTINUE_PROCESSING = "continue_processing";
-    private static final String FAST_RESPONSE_MESSAGE = "fast_response_message";
+    private static final String FAST_MESSAGE = "fast_message";
     private static final String ROUTER = "router";
     private static final String INVOKER_DISCOVERER = "invoker_discoverer";
     private static final String INVOKER = "invoker";
@@ -33,19 +33,19 @@ public final class HttpChannelContext extends HashMap<String, Object> {
     private static final String GATEWAY_SERVER_CONFIG = "gateway_server_config";
     private static final String HTTP_CHANNEL = "http_channel";
 
-    public HttpRequest getHttpRequest() {
-        return (HttpRequest) get(HTTP_REQUEST);
+    public FullHttpRequest getHttpRequest() {
+        return (FullHttpRequest) get(HTTP_REQUEST);
     }
 
-    public void setHttpRequest(HttpRequest httpRequest) {
+    public void setHttpRequest(FullHttpRequest httpRequest) {
         put(HTTP_REQUEST, httpRequest);
     }
 
-    public HttpResponse getHttpResponse() {
-        return (HttpResponse) get(HTTP_RESPONSE);
+    public FullHttpResponse getHttpResponse() {
+        return (FullHttpResponse) get(HTTP_RESPONSE);
     }
 
-    public void setHttpResponse(HttpResponse httpResponse) {
+    public void setHttpResponse(FullHttpResponse httpResponse) {
         put(HTTP_RESPONSE, httpResponse);
     }
 
@@ -57,12 +57,12 @@ public final class HttpChannelContext extends HashMap<String, Object> {
         put(CONTINUE_PROCESSING, con);
     }
 
-    public void setFastResponseMessage(FastResponseMessage message) {
-        put(FAST_RESPONSE_MESSAGE, message);
+    public void setFastMessage(FastMessage message) {
+        put(FAST_MESSAGE, message);
     }
 
-    public FastResponseMessage getFastResponseMessage() {
-        return (FastResponseMessage) get(FAST_RESPONSE_MESSAGE);
+    public FastMessage getFastMessage() {
+        return (FastMessage) get(FAST_MESSAGE);
     }
 
     public Router getRouter() {

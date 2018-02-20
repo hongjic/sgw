@@ -2,6 +2,7 @@ package sgw;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sgw.core.filters.FilterMngr;
 import sgw.core.http_channel.HttpChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;

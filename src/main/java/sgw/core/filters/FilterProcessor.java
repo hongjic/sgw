@@ -25,10 +25,11 @@ public enum FilterProcessor {
     }
 
     public void runFilters(String filterType, HttpChannelContext httpCtx) throws FilterException {
-        List<AbstractFilter> list = FilterLoader.Instance.getFiltersByType(filterType);
+        List<AbstractFilter> list = FilterMngr.Instance.getFiltersByType(filterType);
         if (list != null) {
             for (AbstractFilter filter: list) {
                 FilterResult result = filter.runFilter(httpCtx);
+
                 logger.info("Filter {}: {}", filter.getClass().getName(), result.toString());
                 if (result.getStatus() == FilterExecutionStatus.FAILED) {
                     Exception e = result.getException();

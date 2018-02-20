@@ -14,6 +14,8 @@ public enum Convertors {
 
     Cache;
 
+    public static final String FAST_RESPONSE_GENERATOR = "FastResponseGenerator";
+
     private final Logger logger = LoggerFactory.getLogger(Convertors.class);
 
     private ConcurrentHashMap<String, FullHttpRequestParser> reqParCache;
@@ -22,6 +24,11 @@ public enum Convertors {
     Convertors() {
         reqParCache = new ConcurrentHashMap<>();
         resGenCache = new ConcurrentHashMap<>();
+        loadBuiltInConvertors();
+    }
+
+    private void loadBuiltInConvertors() {
+        resGenCache.put(FAST_RESPONSE_GENERATOR, new FastResponseGenerator());
     }
 
     public FullHttpRequestParser getReqParser(String clazzName) throws IllegalArgumentException {

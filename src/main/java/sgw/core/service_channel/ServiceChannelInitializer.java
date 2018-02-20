@@ -3,8 +3,6 @@ package sgw.core.service_channel;
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
 import sgw.core.http_channel.HttpChannelInitializer;
-import sgw.core.http_channel.HttpParamConvertor;
-import sgw.core.http_channel.ResultHttpConvertor;
 import sgw.core.service_channel.thrift.ThriftChannelContext;
 import sgw.core.service_channel.thrift.ThriftDecoder;
 import sgw.core.service_channel.thrift.ThriftEncoder;
