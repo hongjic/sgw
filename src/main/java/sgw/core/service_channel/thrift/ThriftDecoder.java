@@ -70,7 +70,6 @@ public class ThriftDecoder extends ByteToMessageDecoder {
                 throw x;
             }
             logger.info("Received {}", msg.seqid);
-            // TODO: netty reuse connection? Is a out of order situation possible?
             result.read(protocol);
             protocol.readMessageEnd();
         } catch (TApplicationException e) {

@@ -9,6 +9,9 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import sgw.core.http_channel.routing.Router;
+import sgw.core.http_channel.routing.RouterGeneratorFactory;
+import sgw.core.service_discovery.RpcInvokerDiscoverer;
 
 public class NettyGatewayServer {
 
@@ -20,6 +23,8 @@ public class NettyGatewayServer {
 
     private int serverPort;
     private HttpChannelInitializer httpChannelInitializer;
+    private Router router;
+    private RpcInvokerDiscoverer discoverer;
 
     /**
      *
@@ -34,7 +39,12 @@ public class NettyGatewayServer {
         backendGroup = strategy.getBackendGroup();
 
         try {
+            router = new RouterGeneratorFactory(config.getRouterDataSource()).create().generate();
+            discoverer = new RpcInvokerDiscoverer.Builder().loadFromConfig().build();
+
             httpChannelInitializer = new HttpChannelInitializer(config);
+            httpChannelInitializer.setRouter(router);
+            httpChannelInitializer.setDiscoverer(discoverer);
         } catch (Exception e) {
             logger.error("Server Initialization failed.");
             throw e;
@@ -43,6 +53,7 @@ public class NettyGatewayServer {
 
     public void start() throws Exception {
         try {
+            discoverer.start();
             ServerBootstrap b = new ServerBootstrap();
             b.group(acceptor, workerGroup)
                     .channel(NioServerSocketChannel.class)
@@ -53,11 +64,16 @@ public class NettyGatewayServer {
             ChannelFuture f = b.bind(serverPort).sync();
             f.channel().closeFuture().sync();
         } finally {
-            logger.info("server shutting down...");
-            backendGroup.shutdownGracefully().sync();
-            workerGroup.shutdownGracefully().sync();
-            acceptor.shutdownGracefully().sync();
+            close();
         }
+    }
+
+    public void close() throws InterruptedException {
+        logger.info("server shutting down...");
+        backendGroup.shutdownGracefully().sync();
+        workerGroup.shutdownGracefully().sync();
+        acceptor.shutdownGracefully().sync();
+        discoverer.close();
     }
 
     public static void main(String[] args) {

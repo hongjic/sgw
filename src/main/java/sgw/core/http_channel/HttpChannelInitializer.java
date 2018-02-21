@@ -44,22 +44,16 @@ public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
     private Router router;
     private RpcInvokerDiscoverer discoverer;
 
-    public HttpChannelInitializer(NettyGatewayServerConfig config) throws Exception {
+    public HttpChannelInitializer(NettyGatewayServerConfig config) {
         this.config = config;
-        initRouter();
-        initDiscoverer();
     }
 
-    private void initRouter() throws Exception {
-        router = new RouterGeneratorFactory(config.getRouterDataSource()).create().generate();
-        logger.info("Router initialized.");
+    public void setRouter(Router router) {
+        this.router = router;
     }
 
-    private void initDiscoverer() throws Exception {
-        discoverer = new RpcInvokerDiscoverer.Builder().loadFromConfig().build();
-        // start listening and auto sync metadata changes.
-        discoverer.start();
-        logger.info("Discoverer initialized.");
+    public void setDiscoverer(RpcInvokerDiscoverer discoverer) {
+        this.discoverer = discoverer;
     }
 
     @Override
@@ -70,11 +64,9 @@ public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
         httpCtx.setRouter(router);
         httpCtx.setInvokerDiscoverer(discoverer);
         httpCtx.setHttpChannel(ch);
-        httpCtx.setContinueProcessing(true);
+        httpCtx.setSendFastMessage(false);
 
-//        int maxContentLength = NettyGatewayServerConfig.getCurrentConfig().getMaxHttpContentLength();
         int maxContentLength = config.getMaxHttpContentLength();
-
         ChannelPipeline p = ch.pipeline();
         // codec
         p.addLast(HTTP_CODEC, new HttpServerCodec()); // HttpServerCodec is both inbound and outbound

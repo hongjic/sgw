@@ -5,11 +5,11 @@ import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
-import org.apache.commons.codec.Charsets;
+import io.netty.util.CharsetUtil;
 import sgw.core.filters.FastMessage;
 
 /**
- * HttpResponse Convertor for filtered requests.
+ * HttpResponse Convertor for {@link FastMessage}
  */
 public class FastResponseGenerator implements FullHttpResponseGenerator {
 
@@ -18,7 +18,7 @@ public class FastResponseGenerator implements FullHttpResponseGenerator {
         FastMessage message = (FastMessage) results[0];
         HttpResponseStatus status = message.getStatus();
         String body = message.getResponseBody();
-        buf.writeCharSequence(body, Charsets.UTF_8);
+        buf.writeCharSequence(body, CharsetUtil.UTF_8);
         return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, status, buf);
     }
 }

@@ -20,7 +20,7 @@ public abstract class AbstractFilter {
     abstract public boolean shouldFilter(HttpChannelContext httpCtx);
 
     /**
-     * use {@link HttpChannelContext#setContinueProcessing(boolean)} to stop moving forward.
+     * use {@link HttpChannelContext#setSendFastMessage(boolean)} to stop moving forward.
      * @return maybe useful in future
      */
     abstract public Object run(HttpChannelContext httpCtx);

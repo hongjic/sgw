@@ -125,8 +125,7 @@ public class RouterPropertiesFileCompiler implements RouterGenerator{
         if (oneRouteFinished(pairs)) {
             HttpMethod method = HttpMethod.valueOf(pairs[METHOD].b);
             HttpRequestDef reqDef = new HttpRequestDef(method, pairs[URI].b);
-            // TODO: validate convertor and protocol name
-            // TODO: generate stateless convertor here, put into cache.
+
             RpcInvokerDef def;
             FullHttpRequestParser reqPar;
             FullHttpResponseGenerator resGen;

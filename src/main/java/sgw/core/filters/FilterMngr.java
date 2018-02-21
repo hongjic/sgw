@@ -1,7 +1,6 @@
 package sgw.core.filters;
 
-import org.apache.commons.codec.Charsets;
-import sgw.core.http_channel.HttpChannelContext;
+import sgw.core.filters.post_routing.DateHeader;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,6 +23,7 @@ public enum FilterMngr {
     FilterMngr() {
         filters[0] = new CopyOnWriteArrayList<>();
         filters[1] = new CopyOnWriteArrayList<>();
+        addFilters(Arrays.asList(new DateHeader()));
     }
 
     public void addFilters(Collection<AbstractFilter> collection) {

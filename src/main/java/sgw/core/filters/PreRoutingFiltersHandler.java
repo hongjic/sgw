@@ -43,32 +43,30 @@ public class PreRoutingFiltersHandler extends ChannelInboundHandlerAdapter {
      * @return true if to continue processing
      */
     private boolean doPreFilter(ChannelHandlerContext ctx) {
-
         try {
             FilterProcessor.Instance.preRouting(httpCtx);
         } catch (FilterException e) {
-            sendFastResponse(ctx, new FastMessage(e));
+            sendFastResponse(ctx);
             return false;
         }
         // continue check in `httpCtx` if request has to stop
-        boolean continueProcessing = httpCtx.getContinueProcessing();
-        if (!continueProcessing) {
-            FastMessage message = httpCtx.getFastMessage();
-            if (message == null)
-                message = FastMessage.EMPTY;
-            sendFastResponse(ctx, message);
+        boolean sendFastMessage = httpCtx.getSendFastMessage();
+        if (sendFastMessage) {
+            sendFastResponse(ctx);
         }
 
-        return continueProcessing;
+        return !sendFastMessage;
     }
 
-    private void sendFastResponse(ChannelHandlerContext ctx, FastMessage message) {
+    private void sendFastResponse(ChannelHandlerContext ctx) {
         ChannelPipeline pipeline = ctx.pipeline();
         // modify pipeline
         pipeline.replace(HttpChannelInitializer.RESPONSE_CONVERTOR,
                 HttpChannelInitializer.RESPONSE_CONVERTOR, new FastMessageToHttpRsp());
-        pipeline.remove(HttpChannelInitializer.POST_FILTER);
         // skip other inbound handlers, write response directly
+        FastMessage message = httpCtx.getFastMessage();
+        if (message == null)
+            message = FastMessage.EMPTY;
         ctx.channel().writeAndFlush(message).addListener(ChannelFutureListener.CLOSE);
     }
 

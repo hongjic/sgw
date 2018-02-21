@@ -18,6 +18,10 @@ public class ThriftToHttpRsp extends MessageToMessageEncoder<ThriftCallWrapper> 
 
     private final Logger logger = LoggerFactory.getLogger(ThriftToHttpRsp.class);
 
+    // TODO: configuration
+    private static final int INITIAL_BUFFER_SIZE = 128;
+    private static final int MAX_BUFFER_SIZE = 1024*1024*1024;
+
     private HttpChannelContext httpCtx;
 
     public ThriftToHttpRsp(HttpChannelContext httpCtx) {
@@ -47,7 +51,7 @@ public class ThriftToHttpRsp extends MessageToMessageEncoder<ThriftCallWrapper> 
             arr[size] = result.getFieldValue(field);
         }
 
-        ByteBuf buf = ctx.alloc().ioBuffer();
+        ByteBuf buf = ctx.alloc().ioBuffer(INITIAL_BUFFER_SIZE, MAX_BUFFER_SIZE);
         FullHttpResponse response = responseGenerator.generate(arr, buf);
         out.add(response);
     }

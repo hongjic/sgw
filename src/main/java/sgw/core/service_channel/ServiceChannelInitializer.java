@@ -28,10 +28,6 @@ public class ServiceChannelInitializer extends ChannelInitializer<SocketChannel>
         ChannelPipeline pipeline = channel.pipeline();
         RpcType protocol = invokerDef.getProtocol();
 
-        /**
-         * temporarily hard coded for experiment.
-         * TODO: init different pipeline according to protocol (and maybe request type like file upload).
-         */
         switch (protocol) {
             case Thrift: {
                 ThriftChannelContext thriftCtx = new ThriftChannelContext();

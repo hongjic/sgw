@@ -1,15 +1,16 @@
 package sgw.core.filters;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
-import sgw.core.filters.AbstractFilter.FilterException;
 
+/**
+ * used for filter customized response and operational response.
+ */
 public final class FastMessage {
 
-    private FilterException exception;
+    private Exception exception;
     private HttpResponseStatus status;
 
-    // override `toString()` to customize response body.
-    private Object message;
+    private String message;
 
     static FastMessage emptyMessage() {
         FastMessage message = new FastMessage("Request filtered, but no response message specified.");
@@ -19,12 +20,12 @@ public final class FastMessage {
 
     public static final FastMessage EMPTY = emptyMessage();
 
-    public FastMessage(FilterException e) {
+    public FastMessage(Exception e) {
         this.exception = e;
         status = HttpResponseStatus.INTERNAL_SERVER_ERROR;
     }
 
-    public FastMessage(Object message) {
+    public FastMessage(String message) {
         this.message = message;
         status = HttpResponseStatus.OK;
     }
@@ -41,6 +42,6 @@ public final class FastMessage {
         if (exception != null)
             return exception.getMessage();
         else
-            return message.toString();
+            return message;
     }
 }

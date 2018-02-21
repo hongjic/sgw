@@ -33,10 +33,12 @@ public enum FilterProcessor {
                 logger.info("Filter {}: {}", filter.getClass().getName(), result.toString());
                 if (result.getStatus() == FilterExecutionStatus.FAILED) {
                     Exception e = result.getException();
-                    if (e instanceof FilterException)
-                        throw (FilterException) e;
-                    else
-                        throw new FilterException(e);
+                    if (!(e instanceof FilterException))
+                        e = new FilterException(e);
+                    httpCtx.setSendFastMessage(true);
+                    httpCtx.setFastMessage(new FastMessage(e));
+
+                    throw (FilterException) e;
                 }
             }
         }

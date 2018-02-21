@@ -78,14 +78,18 @@ public interface RpcInvokerDiscoverer {
         }
 
         public RpcInvokerDiscoverer build() throws Exception {
+            RpcInvokerDiscoverer discoverer;
             switch (impl) {
                 case Zookeeper:
-                    return new ZKServiceDiscoverer.Builder()
+                    discoverer = new ZKServiceDiscoverer.Builder()
                             .loadFromConfig()
                             .build(serviceNames);
+                    break;
                 default:
-                    return null;
+                    discoverer = null;
+                    break;
             }
+            return discoverer;
         }
     }
 }

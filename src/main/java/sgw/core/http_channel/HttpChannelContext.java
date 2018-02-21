@@ -22,7 +22,7 @@ public final class HttpChannelContext extends HashMap<String, Object> {
 
     private static final String HTTP_REQUEST = "http_request";
     private static final String HTTP_RESPONSE = "http_response";
-    private static final String CONTINUE_PROCESSING = "continue_processing";
+    private static final String SEND_FAST_RESPONSE = "send_fast_response";
     private static final String FAST_MESSAGE = "fast_message";
     private static final String ROUTER = "router";
     private static final String INVOKER_DISCOVERER = "invoker_discoverer";
@@ -49,12 +49,12 @@ public final class HttpChannelContext extends HashMap<String, Object> {
         put(HTTP_RESPONSE, httpResponse);
     }
 
-    public boolean getContinueProcessing() {
-        return (boolean) get(CONTINUE_PROCESSING);
+    public boolean getSendFastMessage() {
+        return (boolean) get(SEND_FAST_RESPONSE);
     }
 
-    public void setContinueProcessing(boolean con) {
-        put(CONTINUE_PROCESSING, con);
+    public void setSendFastMessage(boolean con) {
+        put(SEND_FAST_RESPONSE, con);
     }
 
     public void setFastMessage(FastMessage message) {

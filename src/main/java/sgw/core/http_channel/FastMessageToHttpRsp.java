@@ -20,7 +20,7 @@ public class FastMessageToHttpRsp extends MessageToMessageEncoder<FastMessage> {
     public void encode(ChannelHandlerContext ctx, FastMessage message, List<Object> out) {
         String clazzName = Convertors.FAST_RESPONSE_GENERATOR;
         FullHttpResponseGenerator generator = Convertors.Cache.getResGen(clazzName);
-        logger.info("Converting Thrift response to Http response BY {}",
+        logger.info("Converting FastMessage to Http response BY {}",
                 generator.getClass().getName());
 
         ByteBuf buf = ctx.alloc().ioBuffer();
