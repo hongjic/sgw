@@ -3,7 +3,6 @@ package sgw.core.util;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
-import sgw.core.filters.FastMessage;
 import sgw.core.http_channel.FastMessageToHttpRsp;
 import sgw.core.http_channel.HttpChannelInitializer;
 

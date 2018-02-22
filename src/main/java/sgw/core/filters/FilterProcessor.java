@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.http_channel.HttpChannelContext;
 import sgw.core.filters.AbstractFilter.FilterException;
+import sgw.core.util.FastMessage;
 
 import java.util.List;
 

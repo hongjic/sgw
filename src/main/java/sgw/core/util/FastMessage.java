@@ -1,4 +1,4 @@
-package sgw.core.filters;
+package sgw.core.util;
 
 import io.netty.handler.codec.http.HttpResponseStatus;
 

@@ -6,7 +6,7 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.CharsetUtil;
-import sgw.core.filters.FastMessage;
+import sgw.core.util.FastMessage;
 
 /**
  * HttpResponse Convertor for {@link FastMessage}

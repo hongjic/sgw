@@ -4,7 +4,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sgw.core.filters.FastMessage;
+import sgw.core.util.FastMessage;
 import sgw.core.http_channel.routing.Router;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;

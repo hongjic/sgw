@@ -4,7 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import sgw.NettyGatewayServerConfig;
-import sgw.core.filters.FastMessage;
+import sgw.core.util.FastMessage;
 import sgw.core.http_channel.routing.Router;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;

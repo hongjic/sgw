@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.data_convertor.Convertors;
 import sgw.core.data_convertor.FullHttpResponseGenerator;
-import sgw.core.filters.FastMessage;
+import sgw.core.util.FastMessage;
 
 import java.util.List;
 
