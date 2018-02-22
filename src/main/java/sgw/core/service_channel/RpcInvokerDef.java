@@ -2,9 +2,9 @@ package sgw.core.service_channel;
 
 public class RpcInvokerDef {
 
-    private final String serviceName;
-    private final String methodName;
-    private final RpcType protocol;
+    protected final String serviceName;
+    protected final String methodName;
+    protected final RpcType protocol;
 
     public RpcInvokerDef(String serviceName, String methodName, RpcType protocol) {
         this.serviceName = serviceName;

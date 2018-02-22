@@ -17,6 +17,14 @@ public class HttpRequestDef {
         this.uri = uri;
     }
 
+    public HttpMethod getHttpMethod() {
+        return httpMethod;
+    }
+
+    public String getUri() {
+        return uri;
+    }
+
     @Override
     public int hashCode() {
         return httpMethod.hashCode() * 31 + uri.hashCode();

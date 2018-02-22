@@ -6,6 +6,7 @@ import sgw.core.http_channel.HttpRequestDef;
 import sgw.core.service_channel.RpcInvokerDef;
 
 import java.util.HashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * Shared among threads, need to be thread-safe after `initialized` becomes ture.
