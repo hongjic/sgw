@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class RoundRobinLoadBalancer<T> implements LoadBalancer<T> {
 
-    private final AtomicInteger order = new AtomicInteger(0);
+    private final AtomicInteger count = new AtomicInteger(0);
     private int size;
     private CopyOnWriteArrayList<T> itemList;
     private HashMap<T, Integer> itemMap;
@@ -30,7 +30,7 @@ public class RoundRobinLoadBalancer<T> implements LoadBalancer<T> {
         if (size == 0) return null;
         T item;
         try {
-            int index = Math.abs(order.getAndIncrement() % size);
+            int index = Math.abs(count.getAndIncrement() % size);
             item = itemList.get(index);
         } catch(ArithmeticException e) {
             return null;

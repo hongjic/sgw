@@ -1,0 +1,18 @@
+port: 8080
+maxHttpContentLength: 108576
+threading:
+  acceptor: 1 # always one
+  httpWorker: 4 # >0: number, default: netty default
+  serviceWorker: 0 # 0: use http threads, default: netty default
+discovery:
+  services: echoservice
+  impl: zookeeper
+
+zookeeper:
+  namespace: service_menu
+  sessionTimeOut: 30000
+  connectionTimeOut: 15000
+  baseSleepTimeMS: 3000
+  maxRetry: 5
+  connectString: 127.0.0.1:2181
+
