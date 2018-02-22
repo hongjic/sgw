@@ -1,0 +1,8 @@
+- method: POST
+  uri: /echo
+  thrift:
+    service: echoservice  # service name
+    method: echo  # method name
+    class: examples.thrift_service.EchoService  # generated thrift class
+    request_parser: sgw.parser.EchoServiceEchoParams
+    response_generator: sgw.parser.EchoServiceEchoResult
