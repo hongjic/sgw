@@ -10,6 +10,7 @@ import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
 import sgw.core.service_channel.thrift.ThriftNonblockingInvoker;
+import sgw.core.service_discovery.ServiceUnavailableException;
 
 import java.io.FileInputStream;
 import java.net.SocketAddress;
@@ -69,7 +70,7 @@ public class ZKServiceDiscoverer implements RpcInvokerDiscoverer {
     }
 
     @Override
-    public RpcInvoker find(RpcInvokerDef invokerDef) {
+    public RpcInvoker find(RpcInvokerDef invokerDef) throws ServiceUnavailableException {
         if (!started)
             throw new IllegalStateException("Discoverer is not started.");
         RpcType rpcProtocol = invokerDef.getProtocol();
@@ -78,8 +79,15 @@ public class ZKServiceDiscoverer implements RpcInvokerDiscoverer {
             case Thrift: {
                 String serviceName = invokerDef.getServiceName();
                 ServiceProvider provider = serviceProviderMap.get(serviceName);
-                SocketAddress remoteAddress = provider.next().getRemoteAddress();
-                return new ThriftNonblockingInvoker(invokerDef, remoteAddress);
+                ServiceNode node = provider.next();
+                if (node != null) {
+                    SocketAddress remoteAddress = node.getRemoteAddress();
+                    return new ThriftNonblockingInvoker(invokerDef, remoteAddress);
+                }
+                else {
+                    throw new ServiceUnavailableException(serviceName);
+                }
+
             }
             default: return null;
         }

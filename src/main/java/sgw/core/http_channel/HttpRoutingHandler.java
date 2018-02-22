@@ -4,12 +4,15 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sgw.core.filters.FastMessage;
 import sgw.core.http_channel.routing.Router;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
 import sgw.core.data_convertor.FullHttpRequestParser;
 import sgw.core.data_convertor.FullHttpResponseGenerator;
+import sgw.core.service_discovery.ServiceUnavailableException;
+import sgw.core.util.FastMessageSender;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -76,8 +79,13 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
-        ctx.close();
+        if (cause instanceof ServiceUnavailableException) {
+            ChannelFuture future = FastMessageSender.send(ctx, new FastMessage((ServiceUnavailableException) cause));
+            future.addListener(ChannelFutureListener.CLOSE);
+        } else {
+            cause.printStackTrace();
+            ctx.close();
+        }
     }
 
 }

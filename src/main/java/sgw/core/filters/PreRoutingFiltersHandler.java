@@ -1,15 +1,13 @@
 package sgw.core.filters;
 
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelPipeline;
+import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.util.ReferenceCountUtil;
 import sgw.core.http_channel.FastMessageToHttpRsp;
 import sgw.core.http_channel.HttpChannelContext;
 import sgw.core.filters.AbstractFilter.FilterException;
 import sgw.core.http_channel.HttpChannelInitializer;
+import sgw.core.util.FastMessageSender;
 
 public class PreRoutingFiltersHandler extends ChannelInboundHandlerAdapter {
 
@@ -46,28 +44,18 @@ public class PreRoutingFiltersHandler extends ChannelInboundHandlerAdapter {
         try {
             FilterProcessor.Instance.preRouting(httpCtx);
         } catch (FilterException e) {
-            sendFastResponse(ctx);
+            ChannelFuture future = FastMessageSender.send(ctx, httpCtx.getFastMessage());
+            future.addListener(ChannelFutureListener.CLOSE);
             return false;
         }
         // continue check in `httpCtx` if request has to stop
         boolean sendFastMessage = httpCtx.getSendFastMessage();
         if (sendFastMessage) {
-            sendFastResponse(ctx);
+            ChannelFuture future = FastMessageSender.send(ctx, httpCtx.getFastMessage());
+            future.addListener(ChannelFutureListener.CLOSE);
         }
 
         return !sendFastMessage;
-    }
-
-    private void sendFastResponse(ChannelHandlerContext ctx) {
-        ChannelPipeline pipeline = ctx.pipeline();
-        // modify pipeline
-        pipeline.replace(HttpChannelInitializer.RESPONSE_CONVERTOR,
-                HttpChannelInitializer.RESPONSE_CONVERTOR, new FastMessageToHttpRsp());
-        // skip other inbound handlers, write response directly
-        FastMessage message = httpCtx.getFastMessage();
-        if (message == null)
-            message = FastMessage.EMPTY;
-        ctx.channel().writeAndFlush(message).addListener(ChannelFutureListener.CLOSE);
     }
 
 }
