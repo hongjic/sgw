@@ -10,19 +10,15 @@ import org.apache.thrift.protocol.TMessageType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.http_channel.HttpChannelContext;
-import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_channel.thrift.ThriftCallWrapper;
 import sgw.core.data_convertor.FullHttpRequestParser;
+import sgw.core.service_channel.thrift.ThriftInvokerDef;
 
 import java.util.List;
 
 public class HttpReqToThrift extends MessageToMessageDecoder<FullHttpRequest>{
 
     private final Logger logger = LoggerFactory.getLogger(HttpReqToThrift.class);
-
-    // TODO: support configuration
-    private static final String ARG_PATH_FORMAT = "examples.thrift_service.%s$%s_args";
-    private static final String RESULT_PATH_FORMAT = "examples.thrift_service.%s$%s_result";
 
     private HttpChannelContext httpCtx;
 
@@ -38,22 +34,21 @@ public class HttpReqToThrift extends MessageToMessageDecoder<FullHttpRequest>{
         // parse http request into an array of parameters.
         Object[] params = requestParser.parse(request);
 
-        RpcInvokerDef invokerDef = httpCtx.getInvokerDef();
+        ThriftInvokerDef invokerDef = (ThriftInvokerDef) httpCtx.getInvokerDef();
 
         TBase<?, TFieldIdEnum> args = createThriftArg(params, invokerDef);
-        TBase result = createThriftResult(invokerDef);
+        TBase result = createEmptyThriftResult(invokerDef);
         TMessage message = new TMessage(invokerDef.getMethodName(), TMessageType.CALL, 0);
         String serviceName = invokerDef.getServiceName().toLowerCase();
         ThriftCallWrapper wrapper = new ThriftCallWrapper(args, result, message, serviceName);
         out.add(wrapper);
     }
 
-    private TBase<?, TFieldIdEnum> createThriftArg(Object[] params, RpcInvokerDef invokerDef) throws Exception {
+    private TBase<?, TFieldIdEnum> createThriftArg(Object[] params, ThriftInvokerDef invokerDef) throws Exception {
         TBase<?, TFieldIdEnum> args;
-        String clazzName = String.format(ARG_PATH_FORMAT,
-                invokerDef.getServiceName(), invokerDef.getMethodName());
+
         try {
-            Class<?> clazz = Class.forName(clazzName);
+            Class<?> clazz = invokerDef.getThriftArgsClazz();
             args = (TBase<?, TFieldIdEnum>) clazz.newInstance();
 
             for (int fieldId = 1; fieldId <= params.length; fieldId++) {
@@ -63,21 +58,22 @@ public class HttpReqToThrift extends MessageToMessageDecoder<FullHttpRequest>{
         } catch (ClassNotFoundException e) {
             // Deal wiht ClassNotFoundException separately here. Later all Exceptions will be
             // converted into DecoderException.
-            logger.error("Thrift class named as {} can not be found.", clazzName);
+            logger.error("Thrift class named as {} can not be found.",
+                    invokerDef.getThriftArgsClazzName());
             throw e;
         }
         return args;
     }
 
-    private TBase createThriftResult(RpcInvokerDef invokerDef) throws Exception {
+    private TBase createEmptyThriftResult(ThriftInvokerDef invokerDef) throws Exception {
         TBase result;
-        String clazzName = String.format(RESULT_PATH_FORMAT,
-                invokerDef.getServiceName(), invokerDef.getMethodName());
+
         try {
-            Class<?> clazz = Class.forName(clazzName);
+            Class<?> clazz = invokerDef.getThriftResultClazz();
             result = (TBase) clazz.newInstance();
         } catch (ClassNotFoundException e) {
-            logger.error("Thrift class named as {} can not be found.", clazzName);
+            logger.error("Thrift class named as {} can not be found.",
+                    invokerDef.getThriftResultClazzName());
             throw e;
         }
         return result;

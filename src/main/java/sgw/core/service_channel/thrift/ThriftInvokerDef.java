@@ -5,9 +5,9 @@ import sgw.core.service_channel.RpcType;
 
 public class ThriftInvokerDef extends RpcInvokerDef {
 
-    private String thriftClazz;
-    private String requestParser;
-    private String responseGenerator;
+    private final String thriftClazz;
+    private Class<?> argsClazz;
+    private Class<?> resultClazz;
 
     public ThriftInvokerDef(RpcType protocol,
                             String serviceName,
@@ -15,29 +15,34 @@ public class ThriftInvokerDef extends RpcInvokerDef {
                             String thriftClazz,
                             String requestParser,
                             String responseGenerator) {
-        super(serviceName, methodName, protocol);
+        super(protocol, serviceName, methodName, requestParser, responseGenerator);
         this.thriftClazz = thriftClazz;
-        this.requestParser = requestParser;
-        this.responseGenerator = responseGenerator;
     }
 
     public String getThriftClazz() {
         return thriftClazz;
     }
 
-    public String getThriftArgsClazz() {
+    public String getThriftArgsClazzName() {
         return thriftClazz + "$" + methodName + "_args";
     }
 
-    public String getThriftResultClazz() {
+    public String getThriftResultClazzName() {
         return thriftClazz + "$" + methodName + "_result";
     }
 
-    public String getRequestParser() {
-        return requestParser;
+    public Class<?> getThriftArgsClazz() throws ClassNotFoundException {
+        if (argsClazz == null) {
+            argsClazz = Class.forName(getThriftArgsClazzName());
+        }
+        return argsClazz;
     }
 
-    public String getResponseGenerator() {
-        return responseGenerator;
+    public Class<?> getThriftResultClazz() throws ClassNotFoundException {
+        if (resultClazz == null) {
+            resultClazz = Class.forName(getThriftResultClazzName());
+        }
+        return resultClazz;
     }
+
 }

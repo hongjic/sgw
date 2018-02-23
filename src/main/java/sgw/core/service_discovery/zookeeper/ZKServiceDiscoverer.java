@@ -39,21 +39,12 @@ public class ZKServiceDiscoverer implements RpcInvokerDiscoverer {
     public void start() throws Exception {
         ZkClient.start();
         for (String serviceName: serviceNames) {
-            String regName = toRegistryName(serviceName);
-            ServiceProvider sp = new ServiceProvider(regName, ZkClient);
+            ServiceProvider sp = new ServiceProvider(serviceName, ZkClient);
             // listen to changes and auto update
             sp.startListening();
             serviceProviderMap.put(serviceName, sp);
         }
         started = true;
-    }
-
-    /**
-     * @param serviceName serviceName configured in routing.properties, equals to className
-     * @return registered name in zookeeper
-     */
-    private String toRegistryName(String serviceName) {
-        return serviceName.toLowerCase();
     }
 
     public void close() {

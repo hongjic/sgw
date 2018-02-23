@@ -1,4 +1,4 @@
-package sgw.core.http_channel.routing_;
+package sgw.core.http_channel.routing;
 
 import io.netty.handler.codec.http.HttpMethod;
 import org.yaml.snakeyaml.Yaml;
@@ -31,8 +31,15 @@ public class YamlRouterCompiler extends RouterCompiler {
             configFile = new File(filePath);
         Yaml yaml = new Yaml();
         RoutingData data = yaml.loadAs(new FileInputStream(configFile), RoutingData.class);
-        HashMap<HttpRequestDef, RpcInvokerDef> map = new HashMap<>();
+        HashMap<HttpRequestDef, RpcInvokerDef> mapping = new HashMap<>();
 
+        // parse thrift service routing
+        parseThrift(mapping, data);
+
+        return mapping;
+    }
+
+    private void parseThrift(HashMap<HttpRequestDef, RpcInvokerDef> mapping, RoutingData data) {
         for (ThriftAPI api: data.getThriftServices()) {
             String[] strs = api.getHttp().split(" ");
             HttpRequestDef httpDef = new HttpRequestDef(HttpMethod.valueOf(strs[0]), strs[1]);
@@ -43,10 +50,8 @@ public class YamlRouterCompiler extends RouterCompiler {
                     api.getClazz(),
                     api.getRequestParser(),
                     api.getResponseGenerator());
-            map.put(httpDef, thriftDef);
+            mapping.put(httpDef, thriftDef);
         }
-
-        return map;
     }
 
     @Override

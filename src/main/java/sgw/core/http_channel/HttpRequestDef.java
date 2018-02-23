@@ -8,6 +8,7 @@ public class HttpRequestDef {
     private final HttpMethod httpMethod;
     private final String uri;
 
+
     public HttpRequestDef(HttpRequest request) {
         this(request.method(), request.uri());
     }

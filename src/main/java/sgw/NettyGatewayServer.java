@@ -2,15 +2,14 @@ package sgw;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sgw.core.filters.FilterMngr;
 import sgw.core.http_channel.HttpChannelInitializer;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+
 import sgw.core.http_channel.routing.Router;
-import sgw.core.http_channel.routing.RouterGeneratorFactory;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
 
 public class NettyGatewayServer {
@@ -39,7 +38,7 @@ public class NettyGatewayServer {
         backendGroup = strategy.getBackendGroup();
 
         try {
-            router = new RouterGeneratorFactory(config.getRouterDataSource()).create().generate();
+            router = Router.createFromConfig();
             discoverer = new RpcInvokerDiscoverer.Builder().loadFromConfig().build();
 
             httpChannelInitializer = new HttpChannelInitializer(config);
@@ -49,6 +48,10 @@ public class NettyGatewayServer {
             logger.error("Server Initialization failed.");
             throw e;
         }
+    }
+
+    public Router getRouter() {
+        return router;
     }
 
     public void start() throws Exception {

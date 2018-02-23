@@ -12,7 +12,6 @@ import sgw.NettyGatewayServerConfig;
 import sgw.core.filters.PostRoutingFiltersHandler;
 import sgw.core.filters.PreRoutingFiltersHandler;
 import sgw.core.http_channel.routing.Router;
-import sgw.core.http_channel.routing.RouterGeneratorFactory;
 import sgw.core.http_channel.thrift.HttpReqToThrift;
 import sgw.core.http_channel.thrift.ThriftToHttpRsp;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
@@ -30,7 +29,7 @@ public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
     public static final String HTTP_CODEC = "http_codec";
     public static final String PRE_FILTER = "pre_filter";
     public static final String POST_FILTER = "post_filter";
-    public static final String SERVICE_DISCOVERY = "service_discovery";
+    public static final String ROUTING = "routing";
     public static final String HTTP_AGGREGATOR = "http_aggregator";
     public static final String REQUEST_CONVERTOR = "request_convertor";
     public static final String SERVICE_INVOKER = "service_invoker";
@@ -78,7 +77,7 @@ public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
         // channel inbound handlers
         p.addLast(HTTP_AGGREGATOR, new HttpObjectAggregator(maxContentLength));
         p.addLast(PRE_FILTER, new PreRoutingFiltersHandler(httpCtx)); // filter handler
-        p.addLast(SERVICE_DISCOVERY, new HttpRoutingHandler(httpCtx));
+        p.addLast(ROUTING, new HttpRoutingHandler(httpCtx));
         p.addLast(REQUEST_CONVERTOR, new HttpReqToThrift(httpCtx));
         p.addLast(SERVICE_INVOKER, new ServiceInvokeHandler(httpCtx));
     }

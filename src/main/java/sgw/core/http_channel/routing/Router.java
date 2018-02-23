@@ -1,57 +1,110 @@
 package sgw.core.http_channel.routing;
 
-import sgw.core.data_convertor.FullHttpRequestParser;
-import sgw.core.data_convertor.FullHttpResponseGenerator;
+import org.yaml.snakeyaml.Yaml;
 import sgw.core.http_channel.HttpRequestDef;
 import sgw.core.service_channel.RpcInvokerDef;
+import sgw.core.service_channel.thrift.ThriftInvokerDef;
+import sgw.core.util.CopyOnWriteHashMap;
 
-import java.util.HashMap;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.*;
 
 /**
- * Shared among threads, need to be thread-safe after `initialized` becomes ture.
+ * thread safe. see {@link CopyOnWriteHashMap} for performance detail.
  */
 public class Router {
 
-    private HashMap<HttpRequestDef, RpcInvokerDef> invokerDefMapping;
-    private HashMap<HttpRequestDef, FullHttpRequestParser> reqParserMapping;
-    private HashMap<HttpRequestDef, FullHttpResponseGenerator> resGeneratorMapping;
-    private boolean initialized;
-    
+    private CopyOnWriteHashMap<HttpRequestDef, RpcInvokerDef> map;
+
     public Router() {
-        invokerDefMapping = new HashMap<>();
-        reqParserMapping = new HashMap<>();
-        resGeneratorMapping = new HashMap<>();
-        initialized = false;
+        map = new CopyOnWriteHashMap<>();
     }
 
-    public RpcInvokerDef getRpcInvokerDef(HttpRequestDef reqDef) {
-        return invokerDefMapping.get(reqDef);
+    /**
+     *
+     * @param reqDef http request definition
+     * @return corresponding rpc request definition
+     */
+    public RpcInvokerDef get(HttpRequestDef reqDef) throws UndefinedHttpRequestException {
+        if (map.containsKey(reqDef))
+            return map.get(reqDef);
+        else
+            throw new UndefinedHttpRequestException(reqDef);
     }
 
-    public FullHttpRequestParser getRequestParser(HttpRequestDef reqDef) {
-        return reqParserMapping.get(reqDef);
+    /**
+     *
+     * @return String representing the YAML format content of the current routing setting.
+     */
+    public String generateYaml() {
+        // TODO: return yaml file content.
+        // generate a Routing
+        final Set<Map.Entry<HttpRequestDef, RpcInvokerDef>> entrySet = map.entrySet();
+        List<YamlRouterCompiler.ThriftAPI> list = new ArrayList<>();
+        for (Map.Entry<HttpRequestDef, RpcInvokerDef> entry: entrySet) {
+            YamlRouterCompiler.ThriftAPI api = new YamlRouterCompiler.ThriftAPI();
+            HttpRequestDef httpDef = entry.getKey();
+            ThriftInvokerDef thriftDef = (ThriftInvokerDef) entry.getValue();
+            api.setClazz(thriftDef.getThriftClazz());
+            api.setHttp(httpDef.getHttpMethod().name() + " " + httpDef.getUri());
+            api.setMethod(thriftDef.getMethodName());
+            api.setRequestParser(thriftDef.getRequestParser());
+            api.setResponseGenerator(thriftDef.getResponseGenerator());
+            api.setService(thriftDef.getServiceName());
+            list.add(api);
+        }
+        YamlRouterCompiler.RoutingData data = new YamlRouterCompiler.RoutingData();
+        data.setThriftServices(list);
+
+        return new Yaml().dump(data);
     }
 
-    public FullHttpResponseGenerator getResponseGenerator(HttpRequestDef reqDef) {
-        return resGeneratorMapping.get(reqDef);
+    /** Modify single mapping. Don't use this method during initialization, use {@link #clear()} instead.
+     *
+     * @param reqDef http request definition
+     * @param invokerDef rpc request definition
+     * @return the previous defined rpc request, null if no previous
+     */
+    public RpcInvokerDef put(HttpRequestDef reqDef, RpcInvokerDef invokerDef) {
+        return map.put(reqDef, invokerDef);
     }
 
-    public void putRouting(HttpRequestDef reqDef,
-                                    RpcInvokerDef invokerDef,
-                                    FullHttpRequestParser requestParser,
-                                    FullHttpResponseGenerator resGenerator) {
-        invokerDefMapping.put(reqDef, invokerDef);
-        reqParserMapping.put(reqDef, requestParser);
-        resGeneratorMapping.put(reqDef, resGenerator);
+    /**
+     *
+     * @param reqDef http request definition
+     * @return the removed rpc request definition, null if no previous
+     */
+    public RpcInvokerDef remove(HttpRequestDef reqDef) {
+        return map.remove(reqDef);
     }
 
-    public boolean isInitialized() {
-        return initialized;
+    /**
+     * clear all routing setting.
+     */
+    public void clear() {
+        map.clear();
     }
 
-    public void initialized() {
-        initialized = true;
+    /**
+     * clear all and load. e.g. initialization
+     * @param hashmap http request --> rpc request mapping
+     */
+    public void clearAndLoad(HashMap<HttpRequestDef, RpcInvokerDef> hashmap) {
+        map.clearAndPutAll(hashmap);
+    }
+
+    public static Router createFromConfig() throws Exception {
+        // first try Yaml
+        RouterCompiler compiler;
+        if ((compiler = new YamlRouterCompiler()).checkExist()) {
+            return compiler.compile();
+        }
+//        else if ((compiler = new PropertiesRouterCompiler()).checkExist()) {
+//            return compiler.compile();
+//        }
+        else {
+            // return empty router
+            return new Router();
+        }
     }
 
 }

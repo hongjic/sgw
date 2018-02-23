@@ -5,11 +5,19 @@ public class RpcInvokerDef {
     protected final String serviceName;
     protected final String methodName;
     protected final RpcType protocol;
+    protected final String requestParser;
+    protected final String responseGenerator;
 
-    public RpcInvokerDef(String serviceName, String methodName, RpcType protocol) {
+    public RpcInvokerDef(RpcType protocol,
+                         String serviceName,
+                         String methodName,
+                         String requestParser,
+                         String responseGenerator) {
         this.serviceName = serviceName;
         this.methodName = methodName;
         this.protocol = protocol;
+        this.requestParser = requestParser;
+        this.responseGenerator = responseGenerator;
     }
 
     public String getServiceName() {
@@ -22,6 +30,33 @@ public class RpcInvokerDef {
 
     public RpcType getProtocol() {
         return protocol;
+    }
+
+    public String getRequestParser() {
+        return requestParser;
+    }
+
+    public String getResponseGenerator() {
+        return responseGenerator;
+    }
+
+    @Override
+    public int hashCode() {
+        int h = 1;
+        h = (h * 31) + serviceName.hashCode();
+        h = (h * 31) + methodName.hashCode();
+        h = (h * 31) + protocol.hashCode();
+        return h;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof RpcInvokerDef))
+            return false;
+        RpcInvokerDef other = (RpcInvokerDef) o;
+        return other.serviceName.equals(serviceName) &&
+                other.methodName.equals(methodName) &&
+                other.protocol.equals(protocol);
     }
 
     @Override

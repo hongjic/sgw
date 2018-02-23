@@ -1,18 +1,14 @@
 package sgw;
 
-import sgw.core.http_channel.routing.RouterDataSource;
-
 import java.util.HashMap;
 
 public class NettyGatewayServerConfig extends HashMap<String, Object>{
 
     private static final String PORT = "port";
-    private static final String ROUTER_DATA_SOURCE = "routerDataSource";
     private static final String THREAD_POOL_STRATEGY = "threadPoolStrategy";
     private static final String MAX_HTTP_CONTENT_LENGTH = "maxHttpContentLength";
 
     private static final int defaultPort = 8080;
-    private static final String defaultRouterPropertiesFilePath = "src/main/resources/routing.properties";
     private static final int defaultMaxHttpContentLength = 1048576; /** 1MB **/
 
     private static NettyGatewayServerConfig config;
@@ -26,9 +22,6 @@ public class NettyGatewayServerConfig extends HashMap<String, Object>{
         config.put(THREAD_POOL_STRATEGY, ThreadPoolStrategy.DEBUG_MODE);
         config.put(PORT, defaultPort);
 
-        RouterDataSource source = new RouterDataSource(RouterDataSource.Type.PROPERTIES_FILE);
-        source.setPropertiesFilePath(defaultRouterPropertiesFilePath);
-        config.put(ROUTER_DATA_SOURCE, source);
         config.put(MAX_HTTP_CONTENT_LENGTH, defaultMaxHttpContentLength);
         return config;
     }
@@ -59,14 +52,6 @@ public class NettyGatewayServerConfig extends HashMap<String, Object>{
 
     public void setPort(int port) {
         put(PORT, port);
-    }
-
-    public void setRouterDataSource(RouterDataSource source) {
-        put(ROUTER_DATA_SOURCE, source);
-    }
-
-    public RouterDataSource getRouterDataSource() {
-        return (RouterDataSource) get(ROUTER_DATA_SOURCE);
     }
 
     public int getMaxHttpContentLength() {

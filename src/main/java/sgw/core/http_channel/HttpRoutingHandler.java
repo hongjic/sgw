@@ -4,6 +4,8 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sgw.core.data_convertor.Convertors;
+import sgw.core.http_channel.routing.UndefinedHttpRequestException;
 import sgw.core.util.FastMessage;
 import sgw.core.http_channel.routing.Router;
 import sgw.core.service_channel.RpcInvoker;
@@ -58,17 +60,22 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
         // no need to wait for the full request body arrives.
         HttpRequestDef httpRequestDef = new HttpRequestDef(request);
 
-        RpcInvokerDef invokerDef = router.getRpcInvokerDef(httpRequestDef);
+        RpcInvokerDef invokerDef = router.get(httpRequestDef);
         RpcInvoker invoker = invokerDetector.find(invokerDef);
-        FullHttpRequestParser requestParser = router.getRequestParser(httpRequestDef);
-        FullHttpResponseGenerator resGen = router.getResponseGenerator(httpRequestDef);
+
+        FullHttpRequestParser reqPar = Convertors.Cache.getReqParser(invokerDef.getRequestParser());
+        FullHttpResponseGenerator resGen = Convertors.Cache.getResGen(invokerDef.getResponseGenerator());
 
         httpCtx.setInvokerDef(invokerDef);
-        httpCtx.setFullHttpRequestParser(requestParser);
+        httpCtx.setFullHttpRequestParser(reqPar);
         httpCtx.setFullHttpResponseGenerator(resGen);
         httpCtx.setInvoker(invoker);
 
-        // send to Http aggregator handler.
+        /**
+         * Send to {@link sgw.core.http_channel.thrift.HttpReqToThrift} for default
+         * To support other rpc protocols, use {@link RpcInvokerDef#getProtocol()} to check protocol and
+         * replace `REQUEST_CONVERTOR` and `RESPONSE_CONVERTOR` handler.
+         */
         ctx.fireChannelRead(msg);
     }
 
@@ -82,7 +89,12 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
         if (cause instanceof ServiceUnavailableException) {
             ChannelFuture future = FastMessageSender.send(ctx, new FastMessage((ServiceUnavailableException) cause));
             future.addListener(ChannelFutureListener.CLOSE);
-        } else {
+        }
+        else if (cause instanceof UndefinedHttpRequestException) {
+            ChannelFuture future = FastMessageSender.send(ctx, new FastMessage((UndefinedHttpRequestException) cause));
+            future.addListener(ChannelFutureListener.CLOSE);
+        }
+        else {
             cause.printStackTrace();
             ctx.close();
         }

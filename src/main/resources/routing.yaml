@@ -1,13 +1,14 @@
 thriftServices:
   - http: POST /echo
+    requestParser: sgw.parser.EchoServiceEchoParams
+    responseGenerator: sgw.parser.EchoServiceEchoResult
     service: echoservice
     method: echo
     clazz: examples.thrift_service.EchoService
-    requestParser: sgw.parser.EchoServiceEchoParams
-    responseGenerator: sgw.parser.EchoServiceEchoResult
   - http: POST /echo2
-    service: echoservice
-    method: echo2
-    clazz: examples.thrift_service.EchoService
     requestParser: sgw.parser.EchoServiceEchoParams
     responseGenerator: sgw.parser.EchoServiceEchoResult
+    service: echoservice
+    method: echo
+    clazz: examples.thrift_service.EchoService
+
