@@ -13,8 +13,7 @@
 
 1. 可动态更新路由
 
-	路由加载方式：
-	
+	路由加载方式
 	* 网关启动时通过加载配置文件`routing.yaml`
 		
 		```
@@ -34,7 +33,7 @@
 	* 通过客户端工具运行时更改路由配置**（未完成）**
 
 2. http和rpc转换
-	
+
 	thrift: 默认和alphadog配置保持一致
 	
 	* protocol：TMultiplexedProtocol --内嵌-> TCompactProtocol
