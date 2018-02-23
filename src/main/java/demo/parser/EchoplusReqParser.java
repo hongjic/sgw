@@ -2,7 +2,7 @@ package demo.parser;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import gen.echoplus.struct.Input;
+import demo.gen.echoplus.struct.Input;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.util.CharsetUtil;
 import sgw.core.data_convertor.FullHttpRequestParser;

@@ -11,9 +11,9 @@ import sgw.core.data_convertor.FullHttpResponseGenerator;
 /**
  * stateless
  */
-public class EchoServiceEchoResult implements FullHttpResponseGenerator {
+public class EchoRspGen implements FullHttpResponseGenerator {
 
-    public EchoServiceEchoResult() {}
+    public EchoRspGen() {}
 
     @Override
     public FullHttpResponse generate(Object[] results, ByteBuf buf) {

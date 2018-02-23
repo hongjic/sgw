@@ -1,7 +1,7 @@
 package demo.parser;
 
 import com.alibaba.fastjson.JSON;
-import gen.echoplus.struct.Output;
+import demo.gen.echoplus.struct.Output;
 import sgw.core.data_convertor.JSONHttpResponseGenerator;
 
 import java.util.HashMap;
