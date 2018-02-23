@@ -18,7 +18,6 @@ public class ThriftToHttpRsp extends MessageToMessageEncoder<ThriftCallWrapper> 
 
     private final Logger logger = LoggerFactory.getLogger(ThriftToHttpRsp.class);
 
-    // TODO: configuration
     private static final int INITIAL_BUFFER_SIZE = 128;
     private static final int MAX_BUFFER_SIZE = 1024*1024*1024;
 

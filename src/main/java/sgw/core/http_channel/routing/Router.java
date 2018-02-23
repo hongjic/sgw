@@ -36,7 +36,6 @@ public class Router {
      * @return String representing the YAML format content of the current routing setting.
      */
     public String generateYaml() {
-        // TODO: return yaml file content.
         // generate a Routing
         final Set<Map.Entry<HttpRequestDef, RpcInvokerDef>> entrySet = map.entrySet();
         List<YamlRouterCompiler.ThriftAPI> list = new ArrayList<>();

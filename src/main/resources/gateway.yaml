@@ -8,11 +8,12 @@ discovery:
   services: echoservice
   impl: zookeeper
 
-zookeeper:
-  namespace: service_menu
-  sessionTimeOut: 30000
-  connectionTimeOut: 15000
-  baseSleepTimeMS: 3000
-  maxRetry: 5
-  connectString: 127.0.0.1:2181
-
+#
+#zookeeper:
+#  namespace: service_menu
+#  sessionTimeOut: 30000
+#  connectionTimeOut: 15000
+#  baseSleepTimeMS: 3000
+#  maxRetry: 5
+#  connectString: 127.0.0.1:2181
+#

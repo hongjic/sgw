@@ -35,7 +35,7 @@ public class ThreadPoolStrategy {
      * @param workerThreads 0 means using default (Netty internally use CPU*2)
      * @param backendThreads 0 means using default
      */
-    ThreadPoolStrategy(int strategy, int workerThreads, int backendThreads) throws IllegalStateException{
+    public ThreadPoolStrategy(int strategy, int workerThreads, int backendThreads) throws IllegalStateException{
         if (strategy < 0 || strategy > 2 || workerThreads < 0 || backendThreads < 0) {
             IllegalStateException e = new IllegalStateException("Invalid thread pool strategy.");
             logger.error(e.getMessage());

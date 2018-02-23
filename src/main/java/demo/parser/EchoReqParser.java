@@ -1,4 +1,4 @@
-package sgw.parser;
+package demo.parser;
 
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.util.CharsetUtil;
@@ -7,9 +7,9 @@ import sgw.core.data_convertor.FullHttpRequestParser;
 /**
  * stateless
  */
-public class EchoServiceEchoParams implements FullHttpRequestParser {
+public class EchoReqParser implements FullHttpRequestParser {
 
-    public EchoServiceEchoParams() {}
+    public EchoReqParser() {}
 
     @Override
     public Object[] parse(FullHttpRequest request) {

@@ -15,9 +15,7 @@ import sgw.core.service_channel.thrift.transport.ByteBufWriteTransport;
 public class ThriftEncoder extends MessageToByteEncoder<ThriftCallWrapper> {
 
     private final Logger logger = LoggerFactory.getLogger(ThriftEncoder.class);
-    /**
-     *  TODO: configuration
-     */
+
     private static final int INITIAL_BUFFER_SIZE = 128;
     private static final int MAX_BUFFER_SIZE = 1024*1024*1024;
     private final byte[] i32buf = new byte[4];
