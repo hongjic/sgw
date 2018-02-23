@@ -35,7 +35,6 @@
 2. http和rpc转换
 
 	thrift: 默认和alphadog配置保持一致
-	
 	* protocol：TMultiplexedProtocol --内嵌-> TCompactProtocol
 	* transport： nio架构必须用TFramedTransport
 	
@@ -47,7 +46,6 @@
 4. 动态添加（删除）过滤器
 	
 	网关提供两种类型的过滤器。preRouting, routing和postRouting过滤器。（和Zuul过滤器类似）
-	
 	* preRouting: 刚解析完http请求后
 	* routing: 调用下游服务前  **（未完成）**
 	* postRouting: 生成http响应后
