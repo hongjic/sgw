@@ -131,6 +131,5 @@ public class CopyOnWriteHashMap<K, V> implements Map<K, V> {
         return Collections.unmodifiableCollection(map.values());
     }
 
-    // TODO: unit test
 
 }

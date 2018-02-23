@@ -1,43 +1,101 @@
 # 基于Netty的服务网关 （未完成）
 
 ## 依赖
-* Netty: 4.1.19Final
-* Thrift: 0.10.0
+* Netty
+* Thrift
+* CuratorFramework
+
+## 目标功能
+
+没有验证过文件上传下载的正确性。因为在alphadog里没有看到文件上传的api，文件下载返回的只是文件地址。
+
+0. NIO
+
+1. 可动态更新路由
+
+	路由加载方式：
+	
+	* 网关启动时通过加载配置文件`routing.yaml`
+		
+		```
+		thriftServices:
+  		  - http: POST /echo # http请求
+	    	requestParser: # http请求解析器类名
+    		responseGenerator: # http响应生成器类名
+    		service: echoservice # 下游服务名（zookeeper中的名字）
+		    method: echo # 下游服务方法名
+		    clazz: # thrift生成的类名
+		  - http: ....
+		  ...
+		xxxServices:
+
+		```
+	* 网关启动时通过代码配置
+	* 通过客户端工具运行时更改路由配置**（未完成）**
+
+2. http和rpc转换
+	
+	thrift: 默认和alphadog配置保持一致
+	
+	* protocol：TMultiplexedProtocol --内嵌-> TCompactProtocol
+	* transport： nio架构必须用TFramedTransport
+	
+3. 服务发现/负载均衡
+
+	配置所有需要服务发现的服务名，在内存中缓存所有服务的节点信息。实时从zookeeper获得节点信息的更新。
+	负载均衡默认采用轮询。
+
+4. 动态添加（删除）过滤器
+	
+	网关提供两种类型的过滤器。preRouting, routing和postRouting过滤器。（和Zuul过滤器类似）
+	
+	* preRouting: 刚解析完http请求后
+	* routing: 调用下游服务前  **（未完成）**
+	* postRouting: 生成http响应后
+	
+	加载过滤器方式：
+	
+	* 网关启动前通过代码配置
+	* 运行时通过客户端工具  **（未完成）**
+		1. 加载新的filter
+		2. disable已加载的filter
+		3. enable被disable的filter
+	
+5. 熔断 **（未完成）**
+	
+	熔断完全基于过滤器实现。通过记录下游服务响应的不同状态的次数（成功，失败，超时等），决定对于之后请求的操作（例：直接返回）。（原理和hystrix类似）
 
 
-## 架构
-Netty基于事件驱动，底层用multiplexing实现NIO。一个EventLoop对应一个线程，并负责处理多个Channel。
 
-网关接受http客户端发出的http请求，通过service discovery找到下游服务并转换对应的rpc请求发送给下游服务。rpc响应收到后，转换成http返回给客户端。
+## 请求-响应生命周期
+1. 从数据流中解码，得到的http请求
+2. preRouting过滤器。
+3. 查询http请求对应的下游服务，选择服务节点（服务发现，负载均衡）
+4. routing过滤器
+5. 将http请求转换成thrift请求参数（这里内部调用配置的http请求解析器）
+6. 连接服务节点（生成rpc channel），将thrift请求参数编码成数据流发送至下游服务
+7. 从数据流中解码，得到的thrift响应
+8. 将thrift响应转换成http响应（这里内部调用配置的http响应生成器）
+9. postRouting过滤器
+10. 将http响应编码成数据流发送回客户端
 
-一个acceptor线程负责监听客户端请求，工作线程提供两种模式：
-
-1. Http请求用**一个线程池**(EventLoopGroup), RPC请求用**一个线程池**. 这里考虑到可能可以复用和下游服务的连接，所以提供这种模式。（还没想明白，暂时没有复用连接）
-2. Http请求和RPC请求**共用一个线程池**。这种模式的一个好处是可以把对应的http channel和RPC channel放在同一个线程当中，在一个请求的生命周期中减少了很多上下文切换。实验时能明显感觉到相比上一个模式延迟确实有明显的降低（以后还需要在高负载情况下benchmark）。采用这种模式的时候，项目默认把RPC channel和Http channel放在同一个线程。
-
-路由可配置，使得网关能自动根据收到的http请求找到对应的下游服务和对应的数据转换器。
-
-数据转换器：这个模块项目提供接口，根据具体业务逻辑实现。在路由配置中设置好对应的转换器类名，项目通过反射机制自动导入。
-
-设计目标是下游服务可以采用各种协议。当前的可运行样例主要基于Thrift实现，Protocol采用TCompactProtocol，Transport因为要基于NIO，只能用TFramedTransport。服务发现也可以采用各种机制。
-
-设计目标是把所有的IO全部用事件驱动解决，包括服务发现（这个部分还未完成）
-
-加上service discovery的设计图如下，服务发现基于zookeeper（开发中）：
-![](./docs/archi_overview.png)
-
-## 工作流
+<!--
 1. **请求路由和服务发现** 接受客户端http请求，通过配置好的路由信息启动路由，找到http请求定义`HttpRequestDef`在路由中找到对应的下游服务信息`RpcInvokerDef`：rpc协议，服务名，方法名，数据转换器。 然后通过服务发现获取服务地址等其他信息，创建`RpcInvoker`实例。
 2. **Http请求转换成RPC参数** 这个部分由业务逻辑决定，继承 `FullHttpRequestParser` 实现无状态的转换器。在`HttpParamConvertor`中被调用。
 3. **连接下游服务，创建RPC channel** `RpcInvoker.connectAsync()`
 4. **序列化RPC请求** `ThriftEncoder`
 5. **反序列化RPC响应** `ThriftDecoder
 6. **写回Http channel**  `RpcFinalHandler`
-7. **RPC结果转换成Http响应** 这个部分也有业务逻辑决定，继承`FullHttpResponseGenerator` 实现，在`ResultHttpConvertor`中被调用。
+7. **RPC结果转换成Http响应** 这个部分也有业务逻辑决定，继承`FullHttpResponseGenerator` 实现，在`ResultHttpConvertor`中被调用。-->
 
-## 运行
+## 扩展
+关于如何扩展
+
+
+<!--## 运行
 1. 启动`examples.thrift_service.ThriftEchoServer` 端口hardcode为9090
 2. 启动`sgw.NettyGatewayServer`  默认绑定8080端口，目前service discovery是hardcode的，直接会连接到localhosst:9090
 3. http客户端POST http://localhost:8080/aaa 请求体附上一端字符串string
 4. http响应体："This is return result: " + string
 
+-->
