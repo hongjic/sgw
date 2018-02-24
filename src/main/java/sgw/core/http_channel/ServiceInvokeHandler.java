@@ -75,6 +75,7 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
         }
         else {
             // close the http connection if the backend connections fails.
+            // TODO: record failue and send back fast response.
             currentChannel.close();
         }
     }

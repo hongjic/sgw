@@ -48,8 +48,8 @@ public class YamlRouterCompiler extends RouterCompiler {
                     api.getService(),
                     api.getMethod(),
                     api.getClazz(),
-                    api.getRequestParser(),
-                    api.getResponseGenerator());
+                    api.getDupleConvertor() == null ? api.getRequestParser() : api.getDupleConvertor(),
+                    api.getDupleConvertor() == null ? api.getResponseGenerator() : api.getDupleConvertor());
             mapping.put(httpDef, thriftDef);
         }
     }
@@ -78,9 +78,14 @@ public class YamlRouterCompiler extends RouterCompiler {
         private String clazz;
         private String requestParser;
         private String responseGenerator;
+        private String dupleConvertor;
 
         public void setClazz(String clazz) {
             this.clazz = clazz;
+        }
+
+        public void setDupleConvertor(String dupleConvertor) {
+            this.dupleConvertor = dupleConvertor;
         }
 
         public void setHttp(String http) {
@@ -105,6 +110,10 @@ public class YamlRouterCompiler extends RouterCompiler {
 
         public String getClazz() {
             return clazz;
+        }
+
+        public String getDupleConvertor() {
+            return dupleConvertor;
         }
 
         public String getHttp() {

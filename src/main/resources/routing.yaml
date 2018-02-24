@@ -1,13 +1,11 @@
 thriftServices:
   - http: POST /echo
-    requestParser: demo.parser.EchoReqParser
-    responseGenerator: demo.parser.EchoRspGen
+    dupleConvertor: demo.parser.EchoConvertor
     service: echoservice
     method: echo
     clazz: demo.gen.echo.service.EchoService
   - http: POST /echoplus
-    requestParser: demo.parser.EchoplusReqParser
-    responseGenerator: demo.parser.EchoplusRspGen
+    dupleConvertor: demo.parser.EchoplusConvertor
     service: echoplusservice
     method: echo
     clazz: demo.gen.echoplus.service.EchoplusService

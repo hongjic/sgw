@@ -46,8 +46,16 @@ public class Router {
             api.setClazz(thriftDef.getThriftClazz());
             api.setHttp(httpDef.getHttpMethod().name() + " " + httpDef.getUri());
             api.setMethod(thriftDef.getMethodName());
-            api.setRequestParser(thriftDef.getRequestParser());
-            api.setResponseGenerator(thriftDef.getResponseGenerator());
+
+            String reqPar = thriftDef.getRequestParser();
+            String resGen = thriftDef.getResponseGenerator();
+            if (reqPar.equals(resGen))
+                api.setDupleConvertor(reqPar);
+            else {
+                api.setRequestParser(reqPar);
+                api.setResponseGenerator(resGen);
+            }
+
             api.setService(thriftDef.getServiceName());
             list.add(api);
         }
