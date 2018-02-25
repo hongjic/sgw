@@ -24,4 +24,9 @@ public interface LoadBalancer<T> {
      */
     int remove(T item);
 
+    /**
+     * @return number of objects inside
+     */
+    int size();
+
 }

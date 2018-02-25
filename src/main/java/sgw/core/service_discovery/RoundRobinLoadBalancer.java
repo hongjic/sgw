@@ -10,12 +10,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class RoundRobinLoadBalancer<T> implements LoadBalancer<T> {
 
     private final AtomicInteger count = new AtomicInteger(0);
-    private int size;
+    private final AtomicInteger size = new AtomicInteger(0);
     private CopyOnWriteArrayList<T> itemList;
     private HashMap<T, Integer> itemMap;
 
     public RoundRobinLoadBalancer() {
-        size = 0;
         itemList = new CopyOnWriteArrayList<>();
         itemMap = new HashMap<>();
     }
@@ -27,7 +26,9 @@ public class RoundRobinLoadBalancer<T> implements LoadBalancer<T> {
      */
     @Override
     public T next() {
-        if (size == 0) return null;
+        int size = this.size.get();
+        if (size == 0)
+            return null;
         T item;
         try {
             int index = Math.abs(count.getAndIncrement() % size);
@@ -41,15 +42,20 @@ public class RoundRobinLoadBalancer<T> implements LoadBalancer<T> {
     }
 
     @Override
+    public int size() {
+        return size.get();
+    }
+
+    @Override
     public synchronized int add(T item) {
         itemList.add(item);
-        itemMap.put(item, size ++);
-        return size;
+        itemMap.put(item, size.getAndIncrement());
+        return size.get();
     }
 
     @Override
     public synchronized int remove(T item) {
-        size --;
+        int size = this.size.decrementAndGet();
         int index = itemMap.remove(item);
         T endItem = itemList.get(size);
         itemList.set(index, endItem);

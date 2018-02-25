@@ -6,6 +6,8 @@ import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.apache.curator.framework.recipes.cache.TreeCacheListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sgw.core.service_discovery.LoadBalancer;
 import sgw.core.service_discovery.RoundRobinLoadBalancer;
 import sun.reflect.annotation.ExceptionProxy;
@@ -15,6 +17,8 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
 public class ServiceProvider {
+
+    private final Logger logger = LoggerFactory.getLogger(ServiceProvider.class);
 
     private String serviceName; // registered service name
     private String ZKPrefixPath;
@@ -42,12 +46,6 @@ public class ServiceProvider {
                         nodeRemovedCallBack(event, loadBalancer);
                         break;
                 }
-                System.out.println(event.getType());
-                if (event.getData() != null) {
-                    System.out.println(event.getData().getPath());
-                    System.out.println(new String(event.getData().getData(), "utf8"));
-                }
-                System.out.println();
             });
         ZKCache.start();
     }
@@ -61,6 +59,7 @@ public class ServiceProvider {
             ServiceNode newNode = new ServiceNodeImpl(nodeName);
             newNode.loadNodeData(childData.getData());
             lb.add(newNode);
+            logger.info("New service node added to service: \"{}\".", serviceName);
         }
     }
 
@@ -72,6 +71,7 @@ public class ServiceProvider {
             String nodeName = path.substring(ZKPrefixPath.length());
             ServiceNode node = new ServiceNodeImpl(nodeName);
             lb.remove(node);
+            logger.info("Service node removed from service: \"{}\", {} left.", serviceName, lb.size());
         }
     }
 
