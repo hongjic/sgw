@@ -30,29 +30,34 @@
 		xxxServices:
 
 		```
-	* 路由匹配模版 **（未完成）**
+	* 支持模版匹配 **（未完成 本周完成）**
 		```
 			- http: POST /echo/{id}
 		```
 	* 网关启动时通过代码配置
 	* 通过客户端工具运行时更改路由配置**（未完成）**
+		
+		作为一种特殊的请求，同样在netty中处理。
+		
+	* 路由的数据结构保证读取的速度，对路由的更新通过创建一个新的hashmap实例的方式防止线程阻塞。
 
 2. http和rpc转换
 
 	thrift: 默认和alphadog配置保持一致
 	* protocol：TMultiplexedProtocol --内嵌-> TCompactProtocol
-	* transport： nio架构必须用TFramedTransport
+	* transport： TFramedTransport
 	
 3. 服务发现/负载均衡
 
-	配置所有需要服务发现的服务名，在内存中缓存所有服务的节点信息。实时从zookeeper获得节点信息的更新。
-	负载均衡默认采用轮询。
+	* 服务发现和netty线程分开，作为一个background thread运行。
+	* 使用一个zookeeper连接，配置所有的服务，每个服务对应一个本地缓存实例，缓存实时从zookeeper获得更新。
+	* 负载均衡默认采用轮询。负载均衡的数据结构保证获取服务实例的速度，节点更新的操作在zookeeper线程中串行执行。
 
 4. 动态添加（删除）过滤器
 	
 	网关提供两种类型的过滤器。preRouting, routing和postRouting过滤器。（和Zuul过滤器类似）
 	* preRouting: 刚解析完http请求后
-	* routing: 调用下游服务前  **（未完成）**
+	* routing: 调用下游服务前  **（未完成 本周完成）**
 	* postRouting: 生成http响应后
 	
 	加载过滤器方式：
@@ -62,11 +67,13 @@
 		2. disable已加载的filter
 		3. enable被disable的filter
 	
-5. 熔断 **（未完成）**
+5. 熔断 **（未完成 本周完成）**
 	
 	熔断完全基于过滤器实现。通过记录下游服务响应的不同状态的次数（成功，失败，超时等），决定对于之后请求的操作（例：直接返回）。（原理和hystrix类似）
 
-
+6. 错误处理
+	
+	request运行过程中抛出异常 和 请求被过滤器过滤等特殊情况，自动快速产生一个对应的http响应。
 
 ## 请求-响应生命周期
 1. 从数据流中解码，得到的http请求
