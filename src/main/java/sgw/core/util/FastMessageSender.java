@@ -4,6 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
+import org.slf4j.Logger;
 import sgw.core.http_channel.FastMessageToHttpRsp;
 import sgw.core.http_channel.HttpChannelInitializer;
 
@@ -24,6 +25,7 @@ public class FastMessageSender {
         // skip other inbound handlers, write response directly
         if (message == null)
             message = FastMessage.EMPTY;
+
         return channel.writeAndFlush(message);
     }
 }

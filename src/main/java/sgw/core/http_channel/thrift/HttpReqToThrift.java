@@ -88,6 +88,7 @@ public class HttpReqToThrift extends MessageToMessageDecoder<FullHttpRequest>{
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         if (cause instanceof DecoderException) {
             cause.printStackTrace();
+            httpCtx.setSendFastMessage(true);
             ChannelFuture future = FastMessageSender.send(ctx, new FastMessage((DecoderException) cause));
             future.addListener(ChannelFutureListener.CLOSE);
         }

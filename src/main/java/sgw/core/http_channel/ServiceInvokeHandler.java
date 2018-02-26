@@ -42,16 +42,25 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelWritabilityChanged(ChannelHandlerContext ctx) {
+        // invokeResult is ready
         RpcInvoker invoker = httpCtx.getInvoker();
         if (invoker.getState() == RpcInvoker.InvokerState.FINISHED && invokeResult != null){
             ChannelFuture future = ctx.channel().writeAndFlush(invokeResult);
             final ChannelHandlerContext context = ctx;
-            future.addListener((ChannelFuture f1) -> {
-                if (f1.isSuccess()) {
-                    context.close();
+            future.addListener((ChannelFuture writeFuture) -> {
+                if (writeFuture.isSuccess()) {
+                    context.channel().close();
                 }
                 else {
-                    context.pipeline().fireExceptionCaught(f1.cause());
+                    Throwable cause = writeFuture.cause();
+                    if (cause instanceof Exception) {
+                        httpCtx.setSendFastMessage(true);
+                        ChannelFuture f = FastMessageSender.send(ctx, new FastMessage((Exception) cause));
+                        f.addListener(ChannelFutureListener.CLOSE);
+                    }
+                    else {
+                        context.channel().close();
+                    }
                 }
             });
         }
@@ -112,18 +121,6 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
             logger.info("Sending message to RPC channel pipeline,");
             invoker.invokeAsync(invokeParam)
                     .addListener((x) -> logger.info("Thrift call sent to downstream service."));
-        }
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        if (cause instanceof EncoderException) {
-            cause.printStackTrace();
-            ChannelFuture future = FastMessageSender.send(ctx, new FastMessage((EncoderException) cause));
-            future.addListener(ChannelFutureListener.CLOSE);
-        }
-        else {
-            ctx.fireExceptionCaught(cause);
         }
     }
 

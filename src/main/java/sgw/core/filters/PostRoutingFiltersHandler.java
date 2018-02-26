@@ -40,6 +40,17 @@ public class PostRoutingFiltersHandler extends ChannelOutboundHandlerAdapter {
      * @return true if to continue processing
      */
     private boolean doPostFilters(ChannelHandlerContext ctx) {
+        if (httpCtx.getSendFastMessage()) {
+            try {
+                FilterProcessor.Instance.postRouting(httpCtx);
+            } catch (Exception e) {
+                e.printStackTrace();
+                ctx.close();
+                return false;
+            }
+            return true;
+        }
+
         try {
             FilterProcessor.Instance.postRouting(httpCtx);
         } catch (AbstractFilter.FilterException e) {

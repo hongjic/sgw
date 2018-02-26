@@ -7,10 +7,12 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.EncoderException;
 import io.netty.handler.codec.MessageToMessageEncoder;
 import io.netty.handler.codec.http.FullHttpResponse;
+import io.netty.util.ReferenceCountUtil;
 import org.apache.thrift.TBase;
 import org.apache.thrift.TFieldIdEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sgw.core.data_convertor.Convertors;
 import sgw.core.data_convertor.FullHttpResponseGenerator;
 import sgw.core.http_channel.HttpChannelContext;
 import sgw.core.service_channel.thrift.ThriftCallWrapper;
@@ -56,19 +58,16 @@ public class ThriftToHttpRsp extends MessageToMessageEncoder<ThriftCallWrapper> 
         }
 
         ByteBuf buf = ctx.alloc().ioBuffer(INITIAL_BUFFER_SIZE, MAX_BUFFER_SIZE);
-        FullHttpResponse response = responseGenerator.generate(arr, buf);
-        out.add(response);
-    }
 
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        if (cause instanceof EncoderException) {
-            cause.printStackTrace();
-            ChannelFuture future = FastMessageSender.send(ctx, new FastMessage((EncoderException) cause));
-            future.addListener(ChannelFutureListener.CLOSE);
-        }
-        else {
-            ctx.fireExceptionCaught(cause);
+        try {
+            FullHttpResponse response = responseGenerator.generate(arr, buf);
+            out.add(response);
+        } catch (Exception e) {
+            // release buf
+            int refCnt = ReferenceCountUtil.refCnt(buf);
+            ReferenceCountUtil.release(refCnt);
+
+            throw e;
         }
     }
 
