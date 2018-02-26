@@ -9,4 +9,8 @@ thriftServices:
     service: echoplusservice
     method: echo
     clazz: demo.gen.echoplus.service.EchoplusService
-
+#  - http: GET /echo/{id}
+#    dupleConvertor: demo.parser.EchoIdConvertor
+#    service: echoservice
+#    method: echo
+#    clazz: demo.gen.echo.service.EchoService

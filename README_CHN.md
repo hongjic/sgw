@@ -21,6 +21,7 @@
   		  - http: POST /echo # http请求
 	    	requestParser: # http请求解析器类名
     		responseGenerator: # http响应生成器类名
+    		dupleConvertor: # 即是http请求解析器也是http响应生成器。覆盖requestParser和responseGenerator的配置
     		service: echoservice # 下游服务名（zookeeper中的名字）
 		    method: echo # 下游服务方法名
 		    clazz: # thrift生成的类名
@@ -28,6 +29,10 @@
 		  ...
 		xxxServices:
 
+		```
+	* 路由匹配模版 **（未完成）**
+		```
+			- http: POST /echo/{id}
 		```
 	* 网关启动时通过代码配置
 	* 通过客户端工具运行时更改路由配置**（未完成）**
@@ -86,6 +91,8 @@
 
 ## 扩展
 关于如何扩展
+## Demo
+[demo.DemoServer](./src/main/java/demo/DemoServer.java)
 
 
 <!--## 运行
