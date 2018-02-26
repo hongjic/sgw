@@ -5,6 +5,7 @@ import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sgw.core.http_channel.ServiceInvokeHandler;
 import sgw.core.service_channel.ServiceChannelInitializer;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;
@@ -25,6 +26,7 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
     private Channel thriftChannel;
     private Channel inboundChannel;
     private InvokerState state;
+    private ServiceInvokeHandler invokeHandler;
 
     public ThriftNonblockingInvoker(RpcInvokerDef invokerDef, SocketAddress remoteAddress) {
         this.invokerDef = invokerDef;
@@ -33,13 +35,14 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
     }
 
     @Override
-    public ThriftNonblockingInvoker register(EventLoopGroup group) {
+    public ThriftNonblockingInvoker register(EventLoopGroup group, ServiceInvokeHandler invokeHandler) {
         if (bootstrap == null) {
             bootstrap = new Bootstrap();
             bootstrap.channel(NioSocketChannel.class)
-                    .handler(new ServiceChannelInitializer(invokerDef, inboundChannel));
+                    .handler(new ServiceChannelInitializer(invokerDef, this));
         }
         bootstrap.group(group);
+        this.invokeHandler = invokeHandler;
         return this;
     }
 
@@ -71,6 +74,13 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
         logger.info("Connecting remote: " + invokerDef.toString());
         thriftChannel = future.channel();
         return future;
+    }
+
+    @Override
+    public void receiveResult(Object result) {
+        invokeHandler.receiveResult(result);
+        setState(InvokerState.FINISHED);
+        inboundChannel.pipeline().fireChannelWritabilityChanged();
     }
 
     private void connected() {

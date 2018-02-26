@@ -1,5 +1,6 @@
 package sgw.core.util;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
@@ -9,8 +10,12 @@ import sgw.core.http_channel.HttpChannelInitializer;
 public class FastMessageSender {
 
     public static ChannelFuture send(ChannelHandlerContext ctx, FastMessage message) {
-        ChannelPipeline pipeline = ctx.pipeline();
-        // modify pipeline
+        return send(ctx.channel(), message);
+    }
+
+    public static ChannelFuture send(Channel channel, FastMessage message) {
+        ChannelPipeline pipeline = channel.pipeline();
+        //modify pipeline
         if (!(pipeline.get(HttpChannelInitializer.RESPONSE_CONVERTOR) instanceof FastMessageToHttpRsp)) {
             pipeline.replace(HttpChannelInitializer.RESPONSE_CONVERTOR,
                     HttpChannelInitializer.RESPONSE_CONVERTOR,
@@ -19,6 +24,6 @@ public class FastMessageSender {
         // skip other inbound handlers, write response directly
         if (message == null)
             message = FastMessage.EMPTY;
-        return ctx.channel().writeAndFlush(message);
+        return channel.writeAndFlush(message);
     }
 }

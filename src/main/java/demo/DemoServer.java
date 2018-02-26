@@ -9,8 +9,8 @@ public class DemoServer {
     public static void main(String[] args) {
         try {
             NettyGatewayServerConfig config = NettyGatewayServerConfig.getDebugConfig();
-            ThreadPoolStrategy strategy = new ThreadPoolStrategy(ThreadPoolStrategy.MULTI_WORKERS, 2, 0);
-            config.setThreadPoolStrategy(strategy);
+//            ThreadPoolStrategy strategy = new ThreadPoolStrategy(ThreadPoolStrategy.MULTI_WORKERS, 2, 0);
+//            config.setThreadPoolStrategy(strategy);
 
             NettyGatewayServer server = new NettyGatewayServer(config);
 

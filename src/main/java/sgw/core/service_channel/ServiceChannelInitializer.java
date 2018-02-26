@@ -15,12 +15,12 @@ import sgw.core.service_channel.thrift.ThriftEncoder;
  */
 public class ServiceChannelInitializer extends ChannelInitializer<SocketChannel> {
 
+    private RpcInvoker invoker;
     private RpcInvokerDef invokerDef;
-    private Channel httpChannel;
 
-    public ServiceChannelInitializer(RpcInvokerDef invokerDef, Channel httpChannel) {
+    public ServiceChannelInitializer(RpcInvokerDef invokerDef, RpcInvoker invoker) {
         this.invokerDef = invokerDef;
-        this.httpChannel = httpChannel;
+        this.invoker = invoker;
     }
 
     @Override
@@ -31,6 +31,8 @@ public class ServiceChannelInitializer extends ChannelInitializer<SocketChannel>
         switch (protocol) {
             case Thrift: {
                 ThriftChannelContext thriftCtx = new ThriftChannelContext();
+                thriftCtx.setInvoker(invoker);
+                thriftCtx.setInvokerDef(invokerDef);
 
                 // outbound handlers: encode and send request
                 pipeline.addLast("thriftEncoder", new ThriftEncoder(thriftCtx));
@@ -41,7 +43,7 @@ public class ServiceChannelInitializer extends ChannelInitializer<SocketChannel>
                  * Send the generated http response back to the http channel.
                  * Probably its the always the same despite the rpc protocol we use.
                  */
-                pipeline.addLast("final", new RpcFinalHandler(httpChannel));
+                pipeline.addLast("final", new RpcFinalHandler(thriftCtx));
                 break;
             }
             default:

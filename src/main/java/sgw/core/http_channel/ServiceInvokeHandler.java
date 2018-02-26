@@ -1,19 +1,24 @@
 package sgw.core.http_channel;
 
 import io.netty.channel.*;
+import io.netty.handler.codec.EncoderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.NettyGatewayServerConfig;
 import sgw.ThreadPoolStrategy;
 import sgw.core.service_channel.RpcInvoker;
+import sgw.core.service_discovery.ServiceUnavailableException;
+import sgw.core.util.FastMessage;
+import sgw.core.util.FastMessageSender;
 
 public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
 
     private final Logger logger = LoggerFactory.getLogger(ServiceInvokeHandler.class);
     /**
-     * When using Thrift, it is a TBase object representing the Thrift request
+     * When using Thrift, it is a ThriftCallWrapper object representing the Thrift request
      */
     private Object invokeParam;
+    private Object invokeResult;
     private HttpChannelContext httpCtx;
 
     public ServiceInvokeHandler(HttpChannelContext httpCtx) {
@@ -31,10 +36,32 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
+    public void receiveResult(Object result) {
+        this.invokeResult = result;
+    }
+
+    @Override
+    public void channelWritabilityChanged(ChannelHandlerContext ctx) {
+        RpcInvoker invoker = httpCtx.getInvoker();
+        if (invoker.getState() == RpcInvoker.InvokerState.FINISHED && invokeResult != null){
+            ChannelFuture future = ctx.channel().writeAndFlush(invokeResult);
+            final ChannelHandlerContext context = ctx;
+            future.addListener((ChannelFuture f1) -> {
+                if (f1.isSuccess()) {
+                    context.close();
+                }
+                else {
+                    context.pipeline().fireExceptionCaught(f1.cause());
+                }
+            });
+        }
+
+    }
+
     /**
      * @param currentChannel the http channel
      */
-    public void connectAndInvoke(RpcInvoker invoker, final Channel currentChannel) {
+    private void connectAndInvoke(RpcInvoker invoker, final Channel currentChannel) {
         ThreadPoolStrategy tpStrategy = NettyGatewayServerConfig.getCurrentConfig().getThreadPoolStrategy();
         invoker.setInboundChannel(currentChannel);
         // register the rpc channel to a eventloop group and connect
@@ -44,9 +71,9 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
              * register the rpc channels to the same thread as the Http channel
              * to reduce potential context switching.
              */
-            invoker.register(currentChannel.eventLoop());
+            invoker.register(currentChannel.eventLoop(), this);
         } else {
-            invoker.register(tpStrategy.getBackendGroup());
+            invoker.register(tpStrategy.getBackendGroup(), this);
         }
 
         ChannelFuture future = invoker.connectAsync();
@@ -88,5 +115,16 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        if (cause instanceof EncoderException) {
+            cause.printStackTrace();
+            ChannelFuture future = FastMessageSender.send(ctx, new FastMessage((EncoderException) cause));
+            future.addListener(ChannelFutureListener.CLOSE);
+        }
+        else {
+            ctx.fireExceptionCaught(cause);
+        }
+    }
 
 }

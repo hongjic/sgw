@@ -87,16 +87,17 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         if (cause instanceof ServiceUnavailableException) {
+            cause.printStackTrace();
             ChannelFuture future = FastMessageSender.send(ctx, new FastMessage((ServiceUnavailableException) cause));
             future.addListener(ChannelFutureListener.CLOSE);
         }
         else if (cause instanceof UndefinedHttpRequestException) {
+            cause.printStackTrace();
             ChannelFuture future = FastMessageSender.send(ctx, new FastMessage((UndefinedHttpRequestException) cause));
             future.addListener(ChannelFutureListener.CLOSE);
         }
         else {
-            cause.printStackTrace();
-            ctx.close();
+            ctx.fireExceptionCaught(cause);
         }
     }
 

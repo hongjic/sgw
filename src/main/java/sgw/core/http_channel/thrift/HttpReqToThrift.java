@@ -1,6 +1,9 @@
 package sgw.core.http_channel.thrift;
 
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.handler.codec.http.FullHttpRequest;
 import org.apache.thrift.TBase;
@@ -13,6 +16,8 @@ import sgw.core.http_channel.HttpChannelContext;
 import sgw.core.service_channel.thrift.ThriftCallWrapper;
 import sgw.core.data_convertor.FullHttpRequestParser;
 import sgw.core.service_channel.thrift.ThriftInvokerDef;
+import sgw.core.util.FastMessage;
+import sgw.core.util.FastMessageSender;
 
 import java.util.List;
 
@@ -81,7 +86,12 @@ public class HttpReqToThrift extends MessageToMessageDecoder<FullHttpRequest>{
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        cause.printStackTrace();
-        ctx.close();
+        if (cause instanceof DecoderException) {
+            cause.printStackTrace();
+            ChannelFuture future = FastMessageSender.send(ctx, new FastMessage((DecoderException) cause));
+            future.addListener(ChannelFutureListener.CLOSE);
+        }
+        else
+            ctx.fireExceptionCaught(cause);
     }
 }
