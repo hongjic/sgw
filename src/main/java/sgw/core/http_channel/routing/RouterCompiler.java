@@ -30,6 +30,8 @@ public abstract class RouterCompiler {
         HashMap<HttpRequestDef, RpcInvokerDef> mapping = parse(getFilePath());
         Router router = new Router();
         router.clearAndLoad(mapping);
+
+        // load convertor instances into cache
         loadConvertors(mapping);
         return router;
     }

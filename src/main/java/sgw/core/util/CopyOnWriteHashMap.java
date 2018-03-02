@@ -1,17 +1,19 @@
 package sgw.core.util;
 
+import org.apache.http.annotation.ThreadSafe;
+
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * thread-safe
  * For situations that read ops vastly outnumber write ops.
  * Copy the whole map whenever mutation happens.
  * Concurrent read op won't block thread, but concurrent writes will.
  * @param <K>
  * @param <V>
  */
+@ThreadSafe
 public class CopyOnWriteHashMap<K, V> implements Map<K, V> {
 
     private volatile HashMap<K, V> map;
@@ -65,19 +67,6 @@ public class CopyOnWriteHashMap<K, V> implements Map<K, V> {
     }
 
     @Override
-    public V remove(Object key) {
-        lock.lock();
-        try {
-            HashMap<K, V> newMap = new HashMap<>(map);
-            V val = newMap.remove(key);
-            map = newMap;
-            return val;
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    @Override
     public void putAll(Map<? extends K, ? extends V> map) {
         if (map == null) {
             return;
@@ -99,6 +88,32 @@ public class CopyOnWriteHashMap<K, V> implements Map<K, V> {
         lock.lock();
         try {
             this.map = new HashMap<>(map);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public V remove(Object key) {
+        lock.lock();
+        try {
+            HashMap<K, V> newMap = new HashMap<>(map);
+            V val = newMap.remove(key);
+            map = newMap;
+            return val;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void removeAll(Collection<K> keys) {
+        lock.lock();
+        try {
+            HashMap<K, V> newMap = new HashMap<>(map);
+            for (K key: keys) {
+                newMap.remove(key);
+            }
+            this.map = newMap;
         } finally {
             lock.unlock();
         }
