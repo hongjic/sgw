@@ -221,6 +221,8 @@ public class UriMatcherImpl<T> implements UriMatcher<T> {
                     if (subPath.length() == 1)
                         throw new IllegalArgumentException("Invalid pattern: " + pattern);
                     subPath = subPath.substring(1);
+                    if (!node.containsChild(subPath))
+                        node.addChild(subPath, new TrieNode());
                     node = node.getChild(subPath);
                 }
             }
@@ -298,12 +300,29 @@ public class UriMatcherImpl<T> implements UriMatcher<T> {
             }
         }
 
+        /**
+         * This method only can be invoked by the root uriLevel.
+         * See {@link #clear0()} for detail.
+         */
         void clear() {
             if (parent != null)
-                throw new IllegalStateException("Only root level can invoke clear().");
+                throw new IllegalStateException("Only root level can invoke clear()");
+            this.obj = null;
+            clear0();
+        }
+
+        /**
+         * This method only can be invoked originally from the root uriLevel.
+         * remove all the nodes' reference to their parent node to enable GC.
+         */
+        private void clear0() {
+            parent = null;
+            for (UriLevel subLevel: directMapping.values())
+                subLevel.clear0();
+            for (UriLevel subLevel: patternMapping.values())
+                subLevel.clear0();
             directMapping.clear();
             patternMapping.clear();
-            this.obj = null;
         }
 
         /**

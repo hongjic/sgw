@@ -16,6 +16,10 @@ public class TrieNode<E> {
         children = new HashMap<>();
     }
 
+    public boolean containsChild(String key) {
+        return children.containsKey(key);
+    }
+
     public void addChild(String key, TrieNode child) {
         children.put(key, child);
     }
@@ -30,8 +34,6 @@ public class TrieNode<E> {
      * @return
      */
     public TrieNode getChild(String key) {
-        if (!children.containsKey(key))
-            children.put(key, new TrieNode());
         return children.get(key);
     }
 
