@@ -7,30 +7,34 @@ import static org.junit.Assert.*;
 public class RoundRobinLoadBalancerTest {
 
     @Test
-    public void testNormal() {
+    public void test() {
         LoadBalancer<String> lb = new RoundRobinLoadBalancer<>();
-        assertEquals(lb.add("aaa"), 1);
-        assertEquals(lb.next(), "aaa");
-        assertEquals(lb.next(), "aaa");
+        assertEquals(1, lb.add("aaa"));
+        assertEquals("aaa", lb.next());
+        assertEquals("aaa", lb.next());
+        assertEquals(1, lb.size());
 
-        assertEquals(lb.add("bbb"), 2);
-        assertEquals(lb.next(), "aaa");
-        assertEquals(lb.next(), "bbb");
+        assertEquals(2, lb.add("bbb"));
+        assertEquals("aaa", lb.next());
+        assertEquals("bbb", lb.next());
+        assertEquals(2, lb.size());
 
-        assertEquals(lb.add("ccc"), 3);
-        assertEquals(lb.next(), "bbb");
-        assertEquals(lb.next(), "ccc");
+        assertEquals(3, lb.add("ccc"));
+        assertEquals("bbb", lb.next());
+        assertEquals("ccc", lb.next());
+        assertEquals(3, lb.size());
 
-        assertEquals(lb.remove("bbb"), 2);
-        assertEquals(lb.next(), "aaa");
-        assertEquals(lb.next(), "ccc");
+        assertEquals(2, lb.remove("bbb"));
+        assertEquals("aaa", lb.next());
+        assertEquals("ccc", lb.next());
+        assertEquals(2, lb.size());
     }
 
     // test add() and next()
     @Test
     public void testConcurrent1() {
         final LoadBalancer<String> lb = new RoundRobinLoadBalancer<>();
-        final int[] stat = new int[2000];
+        final int[] stat = new int[10000];
         Thread nextThread = new Thread(() -> {
             while (!Thread.interrupted()) {
                 String item = lb.next();
@@ -39,13 +43,8 @@ public class RoundRobinLoadBalancerTest {
             }
         });
         Thread addThread = new Thread(() -> {
-            for (int i = 0; i < 2000; i ++) {
+            for (int i = 0; i < 10000; i ++) {
                 lb.add(String.valueOf(i));
-                try {
-                    Thread.sleep(5);
-                } catch(InterruptedException e) {
-                    e.printStackTrace();
-                }
             }
             nextThread.interrupt();
         });
@@ -58,10 +57,6 @@ public class RoundRobinLoadBalancerTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        for (int i = 0; i < 2000; i ++)
-            System.out.println(i + ": " + stat[i]);
-
     }
 
     // test remove() and next()
@@ -95,9 +90,6 @@ public class RoundRobinLoadBalancerTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-//        for (int i = 0; i < 100000; i ++)
-//            System.out.println(i + ": " + stat[i]);
 
     }
 

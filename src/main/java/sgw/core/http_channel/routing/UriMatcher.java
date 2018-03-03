@@ -44,19 +44,15 @@ public interface UriMatcher<T> {
             this.obj = obj;
         }
 
-        void addParsedParam(String name, Object value) {
-            params.put(name, value);
-        }
-
         void setParams(Map<String, Object> params) {
             this.params = params;
         }
 
-        E getObject() {
+        public E getObject() {
             return obj;
         }
 
-        Map<String, Object> getParams() {
+        public Map<String, Object> getParams() {
             return params;
         }
 
@@ -102,10 +98,13 @@ public interface UriMatcher<T> {
          * @return true if {@param pc1} is better than {@param pc2}
          */
         static boolean betterMatch(PatternCounted pc1, PatternCounted pc2) {
-            return pc1.allPatternCount < pc2.allPatternCount
-                    || pc1.starCount < pc2.starCount
-                    || pc1.varCount < pc2.varCount
-                    || pc1.qmarkCount < pc2.qmarkCount;
+            if (pc1.allPatternCount != pc2.allPatternCount)
+                return pc1.allPatternCount < pc2.allPatternCount;
+            if (pc1.starCount != pc2.starCount)
+                return pc1.starCount < pc2.starCount;
+            if (pc1.varCount != pc2.varCount)
+                return pc1.varCount < pc2.varCount;
+            return pc1.qmarkCount < pc2.qmarkCount;
         }
     }
 

@@ -58,9 +58,9 @@ public class CopyOnWriteHashMap<K, V> implements Map<K, V> {
         lock.lock();
         try {
             HashMap<K, V> newMap = new HashMap<>(map);
-            V val = newMap.remove(key);
+            V old = newMap.put(key, value);
             map = newMap;
-            return val;
+            return old;
         } finally {
             lock.unlock();
         }

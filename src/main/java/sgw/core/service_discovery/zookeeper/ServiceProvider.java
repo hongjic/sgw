@@ -5,14 +5,11 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.recipes.cache.ChildData;
 import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
-import org.apache.curator.framework.recipes.cache.TreeCacheListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.service_discovery.LoadBalancer;
 import sgw.core.service_discovery.RoundRobinLoadBalancer;
-import sun.reflect.annotation.ExceptionProxy;
 
-import java.io.UnsupportedEncodingException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 

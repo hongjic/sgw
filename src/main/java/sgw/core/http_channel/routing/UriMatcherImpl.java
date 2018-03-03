@@ -51,7 +51,8 @@ public class UriMatcherImpl<T> implements UriMatcher<T> {
             }
             pathLeft = pathLeft.substring(subPath.length());
             if (pathLeft.length() == 0) {
-                for (UriLevelMatchResult<T> levelMatchResult : list) {
+                for (UriLevelMatchResult<T> levelMatchResult : list)
+                if (levelMatchResult.isValidMapping()) {
                     if (result == null)
                         result = new UriMatchResult<>(levelMatchResult.uriLevel.getObj(), levelMatchResult.params, levelMatchResult);
                     else {
@@ -123,7 +124,7 @@ public class UriMatcherImpl<T> implements UriMatcher<T> {
 
         UriLevel<T> uriLevel = findUriLevelByPath(pattern, rootLevel, false);
         if (uriLevel == null)
-            throw new IllegalArgumentException("Pattern not exist.");
+            return null;
 
         T old = uriLevel.setObj(null);
         // remove uriLevel if it is an empty leaf.
@@ -150,7 +151,7 @@ public class UriMatcherImpl<T> implements UriMatcher<T> {
     private static String nextSubPath(String path) {
         if (path.length() == 0) return path;
         if (path.charAt(0) != DELIMITER)
-            throw new IllegalArgumentException("Invalid Path");
+            throw new IllegalArgumentException("Invalid Path: {" + path + "}");
 
         StringBuilder next = new StringBuilder();
         int len = path.length(), i = 0;
@@ -215,7 +216,7 @@ public class UriMatcherImpl<T> implements UriMatcher<T> {
             if (!(p.length() == 1 && p.charAt(0) == DELIMITER)) { // not root
                 String subPath;
                 while (!(subPath = nextSubPath(p)).equals("")) {
-                    p = pattern.substring(subPath.length());
+                    p = p.substring(subPath.length());
 
                     if (subPath.length() == 1)
                         throw new IllegalArgumentException("Invalid pattern: " + pattern);
@@ -240,8 +241,8 @@ public class UriMatcherImpl<T> implements UriMatcher<T> {
         private final Pattern regex;
         private final String paramName;
         private volatile T obj;
-        private CopyOnWriteHashMap<String, UriLevel<T>> directMapping;
-        private CopyOnWriteHashMap<String, UriLevel<T>> patternMapping;
+        private final CopyOnWriteHashMap<String, UriLevel<T>> directMapping;
+        private final CopyOnWriteHashMap<String, UriLevel<T>> patternMapping;
 
         UriLevel(String pattern, UriLevel<T> parent) {
             this(pattern, null, parent);
@@ -298,6 +299,8 @@ public class UriMatcherImpl<T> implements UriMatcher<T> {
         }
 
         void clear() {
+            if (parent != null)
+                throw new IllegalStateException("Only root level can invoke clear().");
             directMapping.clear();
             patternMapping.clear();
             this.obj = null;
@@ -320,7 +323,7 @@ public class UriMatcherImpl<T> implements UriMatcher<T> {
          */
         UriLevel<T> findByPattern(String pattern, boolean create) {
             if (isDirectMapping(pattern)) {
-                if (!directMapping.containsKey(pattern))
+                if (directMapping.containsKey(pattern))
                     return directMapping.get(pattern);
                 else {
                     if (!create)
@@ -380,10 +383,11 @@ public class UriMatcherImpl<T> implements UriMatcher<T> {
                 Pattern regex = subLevel.regex;
                 Matcher matcher = regex.matcher(subPath);
                 if (matcher.matches()) {
-                    String paramName = subLevel.paramName;
-                    String paramValue = matcher.group(paramName);
                     UriLevelMatchResult<T> r = new UriLevelMatchResult<>(subLevel);
-                    r.addParsedResult(paramName, paramValue);
+                    if (subLevel.paramName != null) {
+                        String paramValue = matcher.group(subLevel.paramName);
+                        r.addParsedResult(subLevel.paramName, paramValue);
+                    }
                     results.add(r);
                 }
             }
@@ -466,6 +470,10 @@ public class UriMatcherImpl<T> implements UriMatcher<T> {
 
         void addAllParsedResults(Map<String, Object> map) {
             this.params.putAll(map);
+        }
+
+        boolean isValidMapping() {
+            return uriLevel.getObj() != null;
         }
 
     }
