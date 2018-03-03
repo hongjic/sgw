@@ -9,18 +9,14 @@ import sgw.core.util.CopyOnWriteHashMap;
 import java.util.*;
 
 /**
- * Thread safe. See {@link CopyOnWriteHashMap} for performance detail.
- * TODO: Validate each mapping upon each write.
- *
+ * thread safe. see {@link CopyOnWriteHashMap} for performance detail.
  */
 public class Router {
 
-    private CopyOnWriteHashMap<HttpRequestDef, RpcInvokerDef> fixedMapping;
-    private CopyOnWriteHashMap<HttpRequestDef, RpcInvokerDef> patternMapping;
+    private CopyOnWriteHashMap<HttpRequestDef, RpcInvokerDef> map;
 
     public Router() {
-        fixedMapping = new CopyOnWriteHashMap<>();
-        patternMapping = new CopyOnWriteHashMap<>();
+        map = new CopyOnWriteHashMap<>();
     }
 
     /**
@@ -29,12 +25,10 @@ public class Router {
      * @return corresponding rpc request definition
      */
     public RpcInvokerDef get(HttpRequestDef reqDef) throws UndefinedHttpRequestException {
-        if (fixedMapping.containsKey(reqDef))
-            return fixedMapping.get(reqDef);
-        else {
-            // TODO: check in patternMapping & if match, set parameters in HttpRequestDef
+        if (map.containsKey(reqDef))
+            return map.get(reqDef);
+        else
             throw new UndefinedHttpRequestException(reqDef);
-        }
     }
 
     /**
@@ -43,7 +37,7 @@ public class Router {
      */
     public String generateYaml() {
         // generate a Routing
-        final Set<Map.Entry<HttpRequestDef, RpcInvokerDef>> entrySet = fixedMapping.entrySet();
+        final Set<Map.Entry<HttpRequestDef, RpcInvokerDef>> entrySet = map.entrySet();
         List<YamlRouterCompiler.ThriftAPI> list = new ArrayList<>();
         for (Map.Entry<HttpRequestDef, RpcInvokerDef> entry: entrySet) {
             YamlRouterCompiler.ThriftAPI api = new YamlRouterCompiler.ThriftAPI();
@@ -78,7 +72,7 @@ public class Router {
      * @return the previous defined rpc request, null if no previous
      */
     public RpcInvokerDef put(HttpRequestDef reqDef, RpcInvokerDef invokerDef) {
-        return fixedMapping.put(reqDef, invokerDef);
+        return map.put(reqDef, invokerDef);
     }
 
     /**
@@ -87,24 +81,22 @@ public class Router {
      * @return the removed rpc request definition, null if no previous
      */
     public RpcInvokerDef remove(HttpRequestDef reqDef) {
-        return fixedMapping.remove(reqDef);
+        return map.remove(reqDef);
     }
 
     /**
      * clear all routing setting.
      */
     public void clear() {
-        fixedMapping.clear();
+        map.clear();
     }
 
     /**
-     * Clear all and load from the given mapping.
-     * This method is more efficient than {@link Router#put(HttpRequestDef, RpcInvokerDef)} when you want to
-     * add more than one mapping, for example cases like initialization.
+     * clear all and load. e.g. initialization
      * @param hashmap http request --> rpc request mapping
      */
     public void clearAndLoad(HashMap<HttpRequestDef, RpcInvokerDef> hashmap) {
-        fixedMapping.clearAndPutAll(hashmap);
+        map.clearAndPutAll(hashmap);
     }
 
     public static Router createFromConfig() throws Exception {
