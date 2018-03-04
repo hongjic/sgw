@@ -19,8 +19,6 @@ public class YamlRouterCompiler extends RouterCompiler {
 
     private String path;
 
-    public YamlRouterCompiler() {}
-
     public YamlRouterCompiler(String filePath) {
         path = filePath;
     }

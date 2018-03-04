@@ -1,68 +1,71 @@
 package sgw.core.http_channel.routing;
 
-import org.yaml.snakeyaml.Yaml;
+import io.netty.handler.codec.http.HttpMethod;
 import sgw.core.http_channel.HttpRequestDef;
 import sgw.core.service_channel.RpcInvokerDef;
-import sgw.core.service_channel.thrift.ThriftInvokerDef;
 import sgw.core.util.CopyOnWriteHashMap;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * thread safe. see {@link CopyOnWriteHashMap} for performance detail.
  */
 public class Router {
 
-    private CopyOnWriteHashMap<HttpRequestDef, RpcInvokerDef> map;
+    private static final HttpMethod[] METHODS = new HttpMethod[] {
+            HttpMethod.POST,
+            HttpMethod.DELETE,
+            HttpMethod.GET,
+            HttpMethod.PUT,
+            HttpMethod.PATCH,
+            HttpMethod.HEAD,
+            HttpMethod.OPTIONS,
+            HttpMethod.TRACE
+    };
+    private final Map<HttpMethod, UriMatcher<RpcInvokerDef>> mappings;
 
     public Router() {
-        map = new CopyOnWriteHashMap<>();
+        mappings = new HashMap<>();
     }
 
     /**
      *
      * @param reqDef http request definition
      * @return corresponding rpc request definition
+     * @throws UndefinedHttpRequestException if request can not be found
      */
     public RpcInvokerDef get(HttpRequestDef reqDef) throws UndefinedHttpRequestException {
-        if (map.containsKey(reqDef))
-            return map.get(reqDef);
-        else
+        UriMatcher<RpcInvokerDef> uriMatcher = uriMatcher(reqDef.getHttpMethod(), false);
+        if (uriMatcher == null)
             throw new UndefinedHttpRequestException(reqDef);
+
+        String uri = reqDef.getUri();
+        UriMatcher.UriMatchResult<RpcInvokerDef> matchResult = uriMatcher.lookup(uri);
+        if (matchResult == null)
+            throw new UndefinedHttpRequestException(reqDef);
+
+        Map<String, Object> params = matchResult.getParams();
+        if (params != null && params.size() > 0) {
+            reqDef.addParsedParams(params);
+        }
+
+        return matchResult.getObject();
     }
 
     /**
      *
-     * @return String representing the YAML format content of the current routing setting.
+     * @param method Http method
+     * @param create Whether to create a new {@link UriMatcher} when {@param method} not found.
+     * @return The {@link UriMatcher} found. Null if not found and {@param} create set to false.
      */
-    public String generateYaml() {
-        // generate a Routing
-        final Set<Map.Entry<HttpRequestDef, RpcInvokerDef>> entrySet = map.entrySet();
-        List<YamlRouterCompiler.ThriftAPI> list = new ArrayList<>();
-        for (Map.Entry<HttpRequestDef, RpcInvokerDef> entry: entrySet) {
-            YamlRouterCompiler.ThriftAPI api = new YamlRouterCompiler.ThriftAPI();
-            HttpRequestDef httpDef = entry.getKey();
-            ThriftInvokerDef thriftDef = (ThriftInvokerDef) entry.getValue();
-            api.setClazz(thriftDef.getThriftClazz());
-            api.setHttp(httpDef.getHttpMethod().name() + " " + httpDef.getUri());
-            api.setMethod(thriftDef.getMethodName());
+    private UriMatcher<RpcInvokerDef> uriMatcher(HttpMethod method, boolean create) {
+        if (!create || mappings.containsKey(method))
+            return mappings.get(method);
 
-            String reqPar = thriftDef.getRequestParser();
-            String resGen = thriftDef.getResponseGenerator();
-            if (reqPar.equals(resGen))
-                api.setDupleConvertor(reqPar);
-            else {
-                api.setRequestParser(reqPar);
-                api.setResponseGenerator(resGen);
-            }
-
-            api.setService(thriftDef.getServiceName());
-            list.add(api);
-        }
-        YamlRouterCompiler.RoutingData data = new YamlRouterCompiler.RoutingData();
-        data.setThriftServices(list);
-
-        return new Yaml().dump(data);
+        UriMatcher<RpcInvokerDef> uriMatcher = new UriMatcherImpl<>();
+        mappings.put(method, uriMatcher);
+        return uriMatcher;
     }
 
     /** Modify single mapping. Don't use this method during initialization, use {@link #clear()} instead.
@@ -72,7 +75,18 @@ public class Router {
      * @return the previous defined rpc request, null if no previous
      */
     public RpcInvokerDef put(HttpRequestDef reqDef, RpcInvokerDef invokerDef) {
-        return map.put(reqDef, invokerDef);
+        return uriMatcher(reqDef.getHttpMethod(), true).register(reqDef.getUri(), invokerDef);
+    }
+
+    public void putAll(Map<HttpRequestDef, RpcInvokerDef> map) {
+        for (HttpMethod method: METHODS) {
+            Map<String, RpcInvokerDef> methodMapping = map
+                    .entrySet().stream()
+                    .filter(entry -> entry.getKey().getHttpMethod() == method)
+                    .collect(Collectors.toMap(entry -> entry.getKey().getUri(), entry -> entry.getValue()));
+            if (methodMapping.size() > 0)
+                uriMatcher(method, true).registerAll(methodMapping);
+        }
     }
 
     /**
@@ -81,33 +95,51 @@ public class Router {
      * @return the removed rpc request definition, null if no previous
      */
     public RpcInvokerDef remove(HttpRequestDef reqDef) {
-        return map.remove(reqDef);
+        UriMatcher<RpcInvokerDef> uriMatcher = uriMatcher(reqDef.getHttpMethod(), false);
+        if (uriMatcher == null)
+            return null;
+
+        return uriMatcher.unregister(reqDef.getUri());
+    }
+
+    public void removeAll(Collection<HttpRequestDef> col) {
+        for (HttpMethod method: METHODS) {
+            List<String> methodCol = col
+                    .stream()
+                    .filter(reqDef -> reqDef.getHttpMethod() == method)
+                    .map(reqDef -> reqDef.getUri())
+                    .collect(Collectors.toList());
+            if (methodCol.size() > 0)
+                Optional.ofNullable(uriMatcher(method, false)).ifPresent(um -> um.unregisterAll(methodCol));
+        }
     }
 
     /**
      * clear all routing setting.
      */
     public void clear() {
-        map.clear();
+        mappings.clear();
     }
 
     /**
      * clear all and load. e.g. initialization
-     * @param hashmap http request --> rpc request mapping
+     * @param map http request --> rpc request mapping
      */
-    public void clearAndLoad(HashMap<HttpRequestDef, RpcInvokerDef> hashmap) {
-        map.clearAndPutAll(hashmap);
+    public void initialize(Map<HttpRequestDef, RpcInvokerDef> map) {
+        mappings.clear();
+        putAll(map);
     }
 
     public static Router createFromConfig() throws Exception {
+        return createFromConfig(null);
+    }
+
+    public static Router createFromConfig(String filePath) throws Exception {
         // first try Yaml
         RouterCompiler compiler;
-        if ((compiler = new YamlRouterCompiler()).checkExist()) {
+        if ((compiler = new YamlRouterCompiler(filePath)).checkExist()) {
             return compiler.compile();
         }
-//        else if ((compiler = new PropertiesRouterCompiler()).checkExist()) {
-//            return compiler.compile();
-//        }
         else {
             // return empty router
             return new Router();

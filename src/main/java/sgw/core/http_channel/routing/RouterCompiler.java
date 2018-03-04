@@ -29,7 +29,7 @@ public abstract class RouterCompiler {
     public Router compile() throws Exception {
         HashMap<HttpRequestDef, RpcInvokerDef> mapping = parse(getFilePath());
         Router router = new Router();
-        router.clearAndLoad(mapping);
+        router.initialize(mapping);
 
         // load convertor instances into cache
         loadConvertors(mapping);

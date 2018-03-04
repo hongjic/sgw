@@ -3,10 +3,14 @@ package sgw.core.http_channel;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class HttpRequestDef {
 
     private final HttpMethod httpMethod;
     private final String uri;
+    private final Map<String, Object> params = new HashMap<>();
 
 
     public HttpRequestDef(HttpRequest request) {
@@ -14,7 +18,7 @@ public class HttpRequestDef {
     }
 
     public HttpRequestDef(HttpMethod method, String uri) {
-        httpMethod = method;
+        this.httpMethod = method;
         this.uri = uri;
     }
 
@@ -26,20 +30,32 @@ public class HttpRequestDef {
         return uri;
     }
 
-    @Override
-    public int hashCode() {
-        return httpMethod.hashCode() * 31 + uri.hashCode();
+    public boolean containsParams() {
+        return (params != null && params.size() == 0);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof HttpRequestDef))
-            return false;
-        HttpRequestDef other = (HttpRequestDef) o;
-        if (other.httpMethod.equals(httpMethod) && other.uri.equals(uri))
-            return true;
-        return false;
+    public Map<String, Object> getParams() {
+        return params;
     }
+
+    public void addParsedParams(Map<String, Object> map) {
+        params.putAll(map);
+    }
+
+//    @Override
+//    public int hashCode() {
+//        return httpMethod.hashCode() * 31 + uri.hashCode();
+//    }
+//
+//    @Override
+//    public boolean equals(Object o) {
+//        if (!(o instanceof HttpRequestDef))
+//            return false;
+//        HttpRequestDef other = (HttpRequestDef) o;
+//        if (other.httpMethod.equals(httpMethod) && other.uri.equals(uri))
+//            return true;
+//        return false;
+//    }
 
     @Override
     public String toString() {
