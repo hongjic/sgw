@@ -2,7 +2,7 @@ thriftServices:
   - service: echoservice
     method: echo
     http: POST /echo
-    convertor: demo.parser.EchoConvertor # 不继承任何class
+    convertor: demo.parser.EchoConvertor
     clazz: demo.gen.echo.service.EchoService
   - service: echoplusservice
     method: echo

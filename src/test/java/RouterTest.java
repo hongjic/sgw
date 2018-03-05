@@ -42,19 +42,19 @@ public class RouterTest {
         map.put(reqDef1, new RpcInvokerDef(
                 RpcType.Thrift,
                 "service1", "method1",
-                null, null));
+                null));
         map.put(reqDef2, new RpcInvokerDef(
                 RpcType.Thrift,
                 "service2", "method1",
-                null, null));
+                null));
         map.put(reqDef3, new RpcInvokerDef(
                 RpcType.Thrift,
                 "service1", "method2",
-                null, null));
+                null));
         map.put(reqDef4, new RpcInvokerDef(
                 RpcType.Thrift,
                 "service1", "method3",
-                null, null));
+                null));
     }
 
 
@@ -99,8 +99,7 @@ public class RouterTest {
         router.put(reqDef5, new RpcInvokerDef(
                 RpcType.Thrift,
                 "service1", "method4",
-                null, null
-        ));
+                null));
         try {
             invokerDef = router.get(reqDef5_1);
             checkInvokerDef("service1", "method4", invokerDef);
@@ -117,8 +116,7 @@ public class RouterTest {
             invokerDef = router.put(reqDef1, new RpcInvokerDef(
                     RpcType.Thrift,
                     "service9", "method9",
-                    null, null
-            ));
+                    null));
             checkInvokerDef("service1", "method1", invokerDef);
 
             invokerDef = router.get(reqDef1);
@@ -136,13 +134,11 @@ public class RouterTest {
             m.put(reqDef1, new RpcInvokerDef(
                     RpcType.Thrift,
                     "service9", "method9",
-                    null, null
-            ));
+                    null));
             m.put(reqDef2, new RpcInvokerDef(
                     RpcType.Thrift,
                     "service2", "method2",
-                    null, null
-            ));
+                    null));
             router.putAll(m);
 
             RpcInvokerDef invokerDef;
