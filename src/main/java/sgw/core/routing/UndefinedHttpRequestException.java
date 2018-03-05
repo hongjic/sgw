@@ -1,4 +1,4 @@
-package sgw.core.http_channel.routing;
+package sgw.core.routing;
 
 import sgw.core.http_channel.HttpRequestDef;
 

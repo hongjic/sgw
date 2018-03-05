@@ -2,8 +2,6 @@ package demo;
 
 import sgw.NettyGatewayServer;
 import sgw.NettyGatewayServerConfig;
-import sgw.ThreadPoolStrategy;
-import sgw.core.http_channel.routing.Router;
 
 public class DemoServer {
 

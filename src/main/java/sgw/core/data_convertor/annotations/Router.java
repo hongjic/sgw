@@ -6,7 +6,7 @@ import java.lang.annotation.*;
  * Mark a class as a router definition. This annotation is only for scanning.
  *
  * Upon initialization, SGW scans the package to find all classes annotated as {@link Router}
- * and load them into {@link sgw.core.http_channel.routing.Router} instance.
+ * and load them into {@link sgw.core.routing.Router} instance.
  *
  * Considering downstream services may use different protocols, each protocol should
  * has their own routing class annotation to contain detail settings.

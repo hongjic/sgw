@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import sgw.NettyGatewayServerConfig;
 import sgw.core.filters.PostRoutingFiltersHandler;
 import sgw.core.filters.PreRoutingFiltersHandler;
-import sgw.core.http_channel.routing.Router;
+import sgw.core.routing.Router;
 import sgw.core.http_channel.thrift.HttpReqToThrift;
 import sgw.core.http_channel.thrift.ThriftToHttpRsp;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;

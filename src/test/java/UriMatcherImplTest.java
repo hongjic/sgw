@@ -1,7 +1,7 @@
 
 import org.junit.Test;
-import sgw.core.http_channel.routing.UriMatcher;
-import sgw.core.http_channel.routing.UriMatcherImpl;
+import sgw.core.routing.UriMatcher;
+import sgw.core.routing.UriMatcherImpl;
 
 import java.util.*;
 

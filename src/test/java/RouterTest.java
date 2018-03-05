@@ -1,8 +1,8 @@
 import io.netty.handler.codec.http.HttpMethod;
 import org.junit.Test;
 import sgw.core.http_channel.HttpRequestDef;
-import sgw.core.http_channel.routing.Router;
-import sgw.core.http_channel.routing.UndefinedHttpRequestException;
+import sgw.core.routing.Router;
+import sgw.core.routing.UndefinedHttpRequestException;
 import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_channel.RpcType;
 

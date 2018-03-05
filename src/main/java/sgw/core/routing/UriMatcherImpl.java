@@ -1,4 +1,4 @@
-package sgw.core.http_channel.routing;
+package sgw.core.routing;
 
 import org.apache.http.annotation.NotThreadSafe;
 import org.apache.http.annotation.ThreadSafe;

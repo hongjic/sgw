@@ -9,7 +9,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
-import sgw.core.http_channel.routing.Router;
+import sgw.core.routing.Router;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
 
 public class NettyGatewayServer {
