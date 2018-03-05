@@ -49,6 +49,7 @@ public class ThriftToHttpRsp extends MessageToMessageEncoder<ThriftCallWrapper> 
         while (result.fieldForId(size) != null) {
             size ++;
         }
+
         // construct array
         Object[] arr = new Object[size];
         while (size > 0) {

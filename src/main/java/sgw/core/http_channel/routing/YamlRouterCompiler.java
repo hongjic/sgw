@@ -24,7 +24,8 @@ public class YamlRouterCompiler extends RouterCompiler {
     }
 
     @Override
-    protected HashMap<HttpRequestDef, RpcInvokerDef> parse(String filePath) throws FileNotFoundException {
+    protected HashMap<HttpRequestDef, RpcInvokerDef> parse(String filePath)
+            throws FileNotFoundException, ClassNotFoundException {
         if (configFile == null)
             configFile = new File(filePath);
         Yaml yaml = new Yaml();
@@ -37,7 +38,7 @@ public class YamlRouterCompiler extends RouterCompiler {
         return mapping;
     }
 
-    private void parseThrift(HashMap<HttpRequestDef, RpcInvokerDef> mapping, RoutingData data) {
+    private void parseThrift(HashMap<HttpRequestDef, RpcInvokerDef> mapping, RoutingData data) throws ClassNotFoundException {
         for (ThriftAPI api: data.getThriftServices()) {
             String[] strs = api.getHttp().split(" ");
             HttpRequestDef httpDef = new HttpRequestDef(HttpMethod.valueOf(strs[0]), strs[1]);

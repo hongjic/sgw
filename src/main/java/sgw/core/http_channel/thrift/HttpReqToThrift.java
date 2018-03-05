@@ -41,7 +41,7 @@ public class HttpReqToThrift extends MessageToMessageDecoder<FullHttpRequest>{
 
         ThriftInvokerDef invokerDef = (ThriftInvokerDef) httpCtx.getInvokerDef();
 
-        TBase<?, TFieldIdEnum> args = createThriftArg(params, invokerDef);
+        TBase args = createThriftArg(params, invokerDef);
         TBase result = createEmptyThriftResult(invokerDef);
         TMessage message = new TMessage(invokerDef.getMethodName(), TMessageType.CALL, 0);
         String serviceName = invokerDef.getServiceName().toLowerCase();
@@ -49,23 +49,15 @@ public class HttpReqToThrift extends MessageToMessageDecoder<FullHttpRequest>{
         out.add(wrapper);
     }
 
-    private TBase<?, TFieldIdEnum> createThriftArg(Object[] params, ThriftInvokerDef invokerDef) throws Exception {
-        TBase<?, TFieldIdEnum> args;
+    private TBase createThriftArg(Object[] params, ThriftInvokerDef invokerDef) throws Exception {
+        TBase args;
 
-        try {
-            Class<?> clazz = invokerDef.getThriftArgsClazz();
-            args = (TBase<?, TFieldIdEnum>) clazz.newInstance();
+        Class<? extends TBase> clazz = invokerDef.getThriftArgsClazz();
+        args = clazz.newInstance();
 
-            for (int fieldId = 1; fieldId <= params.length; fieldId++) {
-                TFieldIdEnum field = args.fieldForId(fieldId);
-                args.setFieldValue(field, params[fieldId - 1]);
-            }
-        } catch (ClassNotFoundException e) {
-            // Deal wiht ClassNotFoundException separately here. Later all Exceptions will be
-            // converted into DecoderException.
-            logger.error("Thrift class named as {} can not be found.",
-                    invokerDef.getThriftArgsClazzName());
-            throw e;
+        for (int fieldId = 1; fieldId <= params.length; fieldId++) {
+            TFieldIdEnum field = args.fieldForId(fieldId);
+            args.setFieldValue(field, params[fieldId - 1]);
         }
         return args;
     }
@@ -73,14 +65,8 @@ public class HttpReqToThrift extends MessageToMessageDecoder<FullHttpRequest>{
     private TBase createEmptyThriftResult(ThriftInvokerDef invokerDef) throws Exception {
         TBase result;
 
-        try {
-            Class<?> clazz = invokerDef.getThriftResultClazz();
-            result = (TBase) clazz.newInstance();
-        } catch (ClassNotFoundException e) {
-            logger.error("Thrift class named as {} can not be found.",
-                    invokerDef.getThriftResultClazzName());
-            throw e;
-        }
+        Class<? extends TBase> clazz = invokerDef.getThriftResultClazz();
+        result = clazz.newInstance();
         return result;
     }
 
