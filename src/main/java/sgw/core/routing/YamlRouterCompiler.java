@@ -47,8 +47,7 @@ public class YamlRouterCompiler extends RouterCompiler {
                     api.getService(),
                     api.getMethod(),
                     api.getClazz(),
-                    api.getDupleConvertor() == null ? api.getRequestParser() : api.getDupleConvertor(),
-                    api.getDupleConvertor() == null ? api.getResponseGenerator() : api.getDupleConvertor());
+                    api.getConvertor());
             mapping.put(httpDef, thriftDef);
         }
     }
@@ -75,16 +74,14 @@ public class YamlRouterCompiler extends RouterCompiler {
         private String service;
         private String method;
         private String clazz;
-        private String requestParser;
-        private String responseGenerator;
-        private String dupleConvertor;
+        private String convertor;
 
         public void setClazz(String clazz) {
             this.clazz = clazz;
         }
 
-        public void setDupleConvertor(String dupleConvertor) {
-            this.dupleConvertor = dupleConvertor;
+        public void setConvertor(String convertor) {
+            this.convertor = convertor;
         }
 
         public void setHttp(String http) {
@@ -95,14 +92,6 @@ public class YamlRouterCompiler extends RouterCompiler {
             this.method = method;
         }
 
-        public void setRequestParser(String requestParser) {
-            this.requestParser = requestParser;
-        }
-
-        public void setResponseGenerator(String responseGenerator) {
-            this.responseGenerator = responseGenerator;
-        }
-
         public void setService(String service) {
             this.service = service;
         }
@@ -111,8 +100,8 @@ public class YamlRouterCompiler extends RouterCompiler {
             return clazz;
         }
 
-        public String getDupleConvertor() {
-            return dupleConvertor;
+        public String getConvertor() {
+            return convertor;
         }
 
         public String getHttp() {
@@ -121,14 +110,6 @@ public class YamlRouterCompiler extends RouterCompiler {
 
         public String getMethod() {
             return method;
-        }
-
-        public String getRequestParser() {
-            return requestParser;
-        }
-
-        public String getResponseGenerator() {
-            return responseGenerator;
         }
 
         public String getService() {

@@ -5,7 +5,10 @@ import sgw.core.http_channel.HttpRequestDef;
 import sgw.core.service_channel.RpcInvokerDef;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 public abstract class RouterCompiler {
 
@@ -36,11 +39,16 @@ public abstract class RouterCompiler {
         return router;
     }
 
+    /**
+     * Load convertors as a batch to improve speed.
+     * Because {@link Convertors#Cache} internally use a {@link sgw.core.util.CopyOnWriteHashMap}.
+     */
     private void loadConvertors(HashMap<HttpRequestDef, RpcInvokerDef> mapping) throws Exception {
-        for (RpcInvokerDef invokerDef: mapping.values()) {
-            Convertors.Cache.createReqParser(invokerDef.getRequestParser());
-            Convertors.Cache.createResGen(invokerDef.getResponseGenerator());
-        }
+        Collection<String> httpConvertorClazzNames = mapping
+                .values().stream()
+                .map(invokerDef -> invokerDef.getHttpConvertorClazzName())
+                .collect(Collectors.toList());
+        Convertors.Cache.cacheAllConvertors(httpConvertorClazzNames);
     }
 
     abstract protected String getFilePath();

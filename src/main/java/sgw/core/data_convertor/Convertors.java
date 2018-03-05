@@ -2,7 +2,12 @@ package sgw.core.data_convertor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sgw.core.util.CopyOnWriteHashMap;
+import sun.tools.java.ClassNotFound;
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -18,66 +23,28 @@ public enum Convertors {
 
     private final Logger logger = LoggerFactory.getLogger(Convertors.class);
 
-    private ConcurrentHashMap<String, FullHttpRequestParser> reqParCache;
-    private ConcurrentHashMap<String, FullHttpResponseGenerator> resGenCache;
+    private CopyOnWriteHashMap<String, ConvertorInfo> infoCache;
 
     Convertors() {
-        reqParCache = new ConcurrentHashMap<>();
-        resGenCache = new ConcurrentHashMap<>();
-        loadBuiltInConvertors();
+        infoCache = new CopyOnWriteHashMap<>();
     }
 
-    private void loadBuiltInConvertors() {
-        resGenCache.put(FAST_RESPONSE_GENERATOR, new FastResponseGenerator());
+    public ConvertorInfo getConvertorInfo(String httpConvertorClazzName) {
+        if (!infoCache.containsKey(httpConvertorClazzName))
+            throw new IllegalArgumentException("Http convertor class info named as {" +
+                    httpConvertorClazzName + "} is not found in cache.");
+        return infoCache.get(httpConvertorClazzName);
     }
 
-    public FullHttpRequestParser getReqParser(String clazzName) throws IllegalArgumentException {
-        if (!reqParCache.containsKey(clazzName))
-            throw new IllegalArgumentException("Http Request Parser named '" +
-            clazzName + "' is not found in cache.");
-        return reqParCache.get(clazzName);
+    public ConvertorInfo getConvertorInfo(Class<?> httpConvertorClazz) {
+        return getConvertorInfo(httpConvertorClazz.getName());
     }
 
-    public FullHttpResponseGenerator getResGen(String clazzName) throws IllegalArgumentException {
-        if (!resGenCache.containsKey(clazzName))
-            throw new IllegalArgumentException("Http Response Generator named '" +
-            clazzName + "' is not found is cache.");
-        return resGenCache.get(clazzName);
-    }
-
-    // should not be called after server starts
-    // **idempotent**
-    public FullHttpRequestParser createReqParser(String clazzName) throws Exception {
-        if (reqParCache.containsKey(clazzName))
-            return reqParCache.get(clazzName);
-
-        FullHttpRequestParser parser;
-        try {
-            Class clazz = Class.forName(clazzName);
-            parser = (FullHttpRequestParser) clazz.newInstance();
-            reqParCache.put(clazzName, parser);
-        } catch (ClassNotFoundException e) {
-            logger.error("Cannot find data convertor named as {}", clazzName);
-            throw e;
+    public void cacheAllConvertors(Collection<String> col) throws Exception {
+        Map<String, ConvertorInfo> map = new HashMap<>();
+        for (String clazzName: col) {
+            map.put(clazzName, ConvertorInfo.create(clazzName));
         }
-        return parser;
-    }
-
-    // should not be called after server starts
-    // **idempotent**
-    public FullHttpResponseGenerator createResGen(String clazzName) throws Exception {
-        if (resGenCache.containsKey(clazzName))
-            return resGenCache.get(clazzName);
-
-        FullHttpResponseGenerator generator;
-        try {
-            Class clazz = Class.forName(clazzName);
-            generator = (FullHttpResponseGenerator) clazz.newInstance();
-            resGenCache.put(clazzName, generator);
-        } catch (ClassNotFoundException e) {
-            logger.error("Cannot find data convertor named as {}", clazzName);
-            throw e;
-        }
-        return generator;
+        infoCache.putAll(map);
     }
 }

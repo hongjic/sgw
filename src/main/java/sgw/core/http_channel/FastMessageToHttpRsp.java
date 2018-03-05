@@ -7,6 +7,7 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.data_convertor.Convertors;
+import sgw.core.data_convertor.FastResponseGenerator;
 import sgw.core.data_convertor.FullHttpResponseGenerator;
 import sgw.core.util.FastMessage;
 
@@ -17,9 +18,8 @@ public class FastMessageToHttpRsp extends MessageToMessageEncoder<FastMessage> {
     private final Logger logger = LoggerFactory.getLogger(FastMessageToHttpRsp.class);
 
     @Override
-    public void encode(ChannelHandlerContext ctx, FastMessage message, List<Object> out) {
-        String clazzName = Convertors.FAST_RESPONSE_GENERATOR;
-        FullHttpResponseGenerator generator = Convertors.Cache.getResGen(clazzName);
+    public void encode(ChannelHandlerContext ctx, FastMessage message, List<Object> out) throws Exception {
+        FullHttpResponseGenerator generator = new FastResponseGenerator();
         logger.info("Converting FastMessage to Http response BY {}",
                 generator.getClass().getName());
 

@@ -12,6 +12,6 @@ public interface FullHttpRequestParser {
      * @param request FullHttpRequest
      * @return A Object array represents the parameters included in thrift method call.
      */
-    Object[] parse(FullHttpRequest request);
+    Object[] parse(FullHttpRequest request) throws Exception;
 
 }

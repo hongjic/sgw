@@ -22,19 +22,19 @@ public interface UriMatcher<T> {
 
     class UriMatchResult<E> extends PatternCounted{
         private E obj;
-        private Map<String, Object> params;
+        private Map<String, String> params;
 
         UriMatchResult(E obj) {
             this(obj, new HashMap<>());
         }
 
-        UriMatchResult(E obj, Map<String, Object> map) {
+        UriMatchResult(E obj, Map<String, String> map) {
             super();
             this.obj = obj;
             this.params = map;
         }
 
-        UriMatchResult(E obj, Map<String, Object> map, PatternCounted pc) {
+        UriMatchResult(E obj, Map<String, String> map, PatternCounted pc) {
             super(pc);
             this.obj = obj;
             this.params = map;
@@ -44,7 +44,7 @@ public interface UriMatcher<T> {
             this.obj = obj;
         }
 
-        void setParams(Map<String, Object> params) {
+        void setParams(Map<String, String> params) {
             this.params = params;
         }
 
@@ -52,7 +52,7 @@ public interface UriMatcher<T> {
             return obj;
         }
 
-        public Map<String, Object> getParams() {
+        public Map<String, String> getParams() {
             return params;
         }
 

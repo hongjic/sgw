@@ -39,7 +39,7 @@ public class ThriftToHttpRsp extends MessageToMessageEncoder<ThriftCallWrapper> 
      * @param out only return a http response
      */
     @Override
-    public void encode(ChannelHandlerContext ctx, ThriftCallWrapper wrapper, List<Object> out) {
+    public void encode(ChannelHandlerContext ctx, ThriftCallWrapper wrapper, List<Object> out) throws Exception {
         TBase result = wrapper.getResult();
         FullHttpResponseGenerator responseGenerator = httpCtx.getResponseGenerator();
         logger.info("Converting Thrift response to Http response BY {}",
@@ -60,16 +60,17 @@ public class ThriftToHttpRsp extends MessageToMessageEncoder<ThriftCallWrapper> 
 
         ByteBuf buf = ctx.alloc().ioBuffer(INITIAL_BUFFER_SIZE, MAX_BUFFER_SIZE);
 
+        FullHttpResponse response;
         try {
-            FullHttpResponse response = responseGenerator.generate(arr, buf);
-            out.add(response);
+            response = responseGenerator.generate(arr, buf);
         } catch (Exception e) {
+            e.printStackTrace();
             // release buf
             int refCnt = ReferenceCountUtil.refCnt(buf);
             ReferenceCountUtil.release(refCnt);
-
             throw e;
         }
+        out.add(response);
     }
 
 }

@@ -45,7 +45,7 @@ public class Router {
         if (matchResult == null)
             throw new UndefinedHttpRequestException(reqDef);
 
-        Map<String, Object> params = matchResult.getParams();
+        Map<String, String> params = matchResult.getParams();
         if (params != null && params.size() > 0) {
             reqDef.addParsedParams(params);
         }

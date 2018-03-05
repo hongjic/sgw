@@ -4,20 +4,19 @@ import io.netty.channel.*;
 import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sgw.core.data_convertor.Convertors;
+import sgw.core.data_convertor.*;
 import sgw.core.routing.UndefinedHttpRequestException;
 import sgw.core.util.FastMessage;
 import sgw.core.routing.Router;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
-import sgw.core.data_convertor.FullHttpRequestParser;
-import sgw.core.data_convertor.FullHttpResponseGenerator;
 import sgw.core.service_discovery.ServiceUnavailableException;
 import sgw.core.util.FastMessageSender;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 
 /**
  * {@link HttpRoutingHandler} first finds {@link RpcInvokerDef} according to the
@@ -59,12 +58,14 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
         // rpc invoker can be determined as soon as we get HttpRequestDef
         // no need to wait for the full request body arrives.
         HttpRequestDef httpRequestDef = new HttpRequestDef(request);
+        Map<String, String> pathParams = httpRequestDef.getParams();
 
         RpcInvokerDef invokerDef = router.get(httpRequestDef);
         RpcInvoker invoker = invokerDetector.find(invokerDef);
 
-        FullHttpRequestParser reqPar = Convertors.Cache.getReqParser(invokerDef.getRequestParser());
-        FullHttpResponseGenerator resGen = Convertors.Cache.getResGen(invokerDef.getResponseGenerator());
+        ConvertorInfo cinfo = Convertors.Cache.getConvertorInfo(invokerDef.getHttpConvertorClazzName());
+        FullHttpRequestParser reqPar = new RequestParserImpl(cinfo, pathParams);
+        FullHttpResponseGenerator resGen = new ResponseGeneratorImpl(cinfo);
 
         httpCtx.setInvokerDef(invokerDef);
         httpCtx.setFullHttpRequestParser(reqPar);

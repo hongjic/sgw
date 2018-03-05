@@ -10,7 +10,7 @@ public class HttpRequestDef {
 
     private final HttpMethod httpMethod;
     private final String uri;
-    private final Map<String, Object> params = new HashMap<>();
+    private final Map<String, String> params = new HashMap<>();
 
 
     public HttpRequestDef(HttpRequest request) {
@@ -34,11 +34,11 @@ public class HttpRequestDef {
         return (params != null && params.size() == 0);
     }
 
-    public Map<String, Object> getParams() {
+    public Map<String, String> getParams() {
         return params;
     }
 
-    public void addParsedParams(Map<String, Object> map) {
+    public void addParsedParams(Map<String, String> map) {
         params.putAll(map);
     }
 

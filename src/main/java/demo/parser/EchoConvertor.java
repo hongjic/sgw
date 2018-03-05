@@ -1,23 +1,19 @@
 package demo.parser;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.util.CharsetUtil;
-import sgw.core.data_convertor.DupleHttpConvertor;
+import sgw.core.data_convertor.annotations.RequestParser;
+import sgw.core.data_convertor.annotations.ResponseGenerator;
 
-public class EchoConvertor implements DupleHttpConvertor {
+public class EchoConvertor{
 
-    @Override
+    @RequestParser
     public Object[] parse(FullHttpRequest request) {
-        Object[] params = new Object[1];
-        params[0] = request.content().toString(CharsetUtil.UTF_8);
-        return params;
+        return new Object[] {request.content().toString(CharsetUtil.UTF_8)};
     }
 
-    @Override
-    public FullHttpResponse generate(Object[] results, ByteBuf buf) {
-        String result = (String) results[0];
-        buf.writeCharSequence(result, CharsetUtil.UTF_8);
-        return new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf);
+    @ResponseGenerator
+    public String generate(String result) {
+        return result;
     }
 }

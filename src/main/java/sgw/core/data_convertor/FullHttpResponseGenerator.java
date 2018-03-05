@@ -15,6 +15,6 @@ public interface FullHttpResponseGenerator {
      * @param buf allocated ByteBuf instance to write http content in.
      * @return a FullHttpResponse
      */
-    FullHttpResponse generate(Object[] results, ByteBuf buf);
+    FullHttpResponse generate(Object[] results, ByteBuf buf) throws Exception;
 
 }

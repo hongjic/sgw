@@ -471,23 +471,23 @@ public class UriMatcherImpl<T> implements UriMatcher<T> {
 
     private static class UriLevelMatchResult<T> extends PatternCounted {
         UriLevel<T> uriLevel;
-        Map<String, Object> params = new HashMap<>();
+        Map<String, String> params = new HashMap<>();
 
         UriLevelMatchResult(UriLevel<T> uriLevel) {
             this(uriLevel, new HashMap<>());
         }
 
-        UriLevelMatchResult(UriLevel<T> uriLevel, Map<String, Object> params) {
+        UriLevelMatchResult(UriLevel<T> uriLevel, Map<String, String> params) {
             super(uriLevel);
             this.uriLevel = uriLevel;
             this.params.putAll(params);
         }
 
-        void addParsedResult(String name, Object value) {
+        void addParsedResult(String name, String value) {
             this.params.put(name, value);
         }
 
-        void addAllParsedResults(Map<String, Object> map) {
+        void addAllParsedResults(Map<String, String> map) {
             this.params.putAll(map);
         }
 
