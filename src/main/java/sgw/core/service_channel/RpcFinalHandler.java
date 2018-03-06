@@ -8,6 +8,11 @@ import org.slf4j.LoggerFactory;
 import sgw.core.service_channel.thrift.ThriftCallWrapper;
 import sgw.core.service_channel.thrift.ThriftChannelContext;
 
+/**
+ * Handles all rpc situations, e.g. SUCCESS, FAIL, TIMEOUT.
+ * Set {@link sgw.core.service_channel.RpcInvoker.InvokerState} and send back response to
+ * http channel.
+ */
 public class RpcFinalHandler extends ChannelInboundHandlerAdapter {
 
     private final Logger logger = LoggerFactory.getLogger(RpcFinalHandler.class);
@@ -22,17 +27,29 @@ public class RpcFinalHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         if (msg instanceof ThriftCallWrapper) {
             logger.info("Sending decoded thrift response back to Http channel pipeline.");
+            invoker.setState(RpcInvoker.InvokerState.SUCCESS);
             writeBackToHttpChannel(msg);
+
             ctx.close();
         }
         else {
             logger.info("Unrecognized RPC result type. RPC channel closed.");
+            invoker.setState(RpcInvoker.InvokerState.FAIL);
             ctx.close();
         }
     }
 
-    private void writeBackToHttpChannel(Object msg)  {
-        invoker.receiveResult(msg);
+    private void writeBackToHttpChannel(Object result)  {
+        invoker.handleResult(result);
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) {
+        if (invoker.getState() == RpcInvoker.InvokerState.INVOKED) {
+            logger.info("Thrift connection lose.");
+            invoker.setState(RpcInvoker.InvokerState.FAIL);
+            writeBackToHttpChannel(null);
+        }
     }
 
 }

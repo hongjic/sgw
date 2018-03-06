@@ -65,10 +65,10 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
         future.addListener((ChannelFuture future1) -> {
             EventLoop eventLoop = inboundChannel.eventLoop();
             if (eventLoop.inEventLoop())
-                connected();
+                ifConnected(future1);
             else
                 eventLoop.execute(() ->
-                        connected());
+                        ifConnected(future1));
         });
         setState(InvokerState.CONNECTING);
         logger.info("Connecting remote: " + invokerDef.toString());
@@ -77,15 +77,28 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
     }
 
     @Override
-    public void receiveResult(Object result) {
+    public void handleResult(Object result) {
+        EventLoop inboundEventLoop = inboundChannel.eventLoop();
+        if (inboundEventLoop.inEventLoop())
+            handleResult0(result);
+        else
+            inboundEventLoop.execute(() -> handleResult0(result));
+    }
+
+    private void handleResult0(Object result) {
         invokeHandler.receiveResult(result);
-        setState(InvokerState.FINISHED);
         inboundChannel.pipeline().fireChannelWritabilityChanged();
     }
 
-    private void connected() {
-        logger.info("Connection established: " + invokerDef.toString());
-        setState(InvokerState.ACTIVE);
+    private void ifConnected(ChannelFuture future) {
+        if (future.isSuccess()) {
+            logger.info("Connection established: " + invokerDef.toString());
+            setState(InvokerState.ACTIVE);
+        }
+        else {
+            logger.info("Connection failure: " + invokerDef.toString());
+            setState(InvokerState.CONNECT_FAIL);
+        }
     }
 
     @Override

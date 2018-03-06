@@ -11,7 +11,7 @@ import sgw.core.http_channel.ServiceInvokeHandler;
 public interface RpcInvoker {
 
     enum InvokerState {
-        INACTIVE, CONNECTING, ACTIVE, INVOKED, FINISHED;
+        INACTIVE, CONNECTING, CONNECT_FAIL, ACTIVE, INVOKED, SUCCESS, TIMEOUT, FAIL
     }
 
     /**
@@ -20,18 +20,38 @@ public interface RpcInvoker {
      */
     RpcInvoker register(EventLoopGroup group, ServiceInvokeHandler invokeHandler);
 
+    /**
+     * Connect to remote service
+     * This method will create the actual rpc channel
+     */
     ChannelFuture connectAsync();
 
+    /**
+     * Send rpc request to remote service.
+     */
     ChannelFuture invokeAsync(Object param);
 
-    void receiveResult(Object result);
+    /**
+     * This method is invoked by the rpc channel when the request has been completed or failed.
+     * Telling the http channel to handle the returned result.
+     * @param result rpc return object
+     */
+    void handleResult(Object result);
 
-    void setState(InvokerState state);
-
+    /**
+     * Bind the http channel to RpcInvoker
+     * @param channel http channel to bind
+     */
     void setInboundChannel(Channel channel);
 
     Channel getRpcChannel();
 
+    /**
+     * Return the invoker state.
+     * @return the current invoker state.
+     */
     InvokerState getState();
+
+    void setState(InvokerState state);
 
 }

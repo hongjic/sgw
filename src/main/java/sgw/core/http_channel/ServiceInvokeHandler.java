@@ -1,15 +1,16 @@
 package sgw.core.http_channel;
 
 import io.netty.channel.*;
-import io.netty.handler.codec.EncoderException;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.NettyGatewayServerConfig;
 import sgw.ThreadPoolStrategy;
 import sgw.core.service_channel.RpcInvoker;
-import sgw.core.service_discovery.ServiceUnavailableException;
 import sgw.core.util.FastMessage;
 import sgw.core.util.FastMessageSender;
+
+import javax.swing.event.ChangeListener;
 
 public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
 
@@ -44,27 +45,64 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
     public void channelWritabilityChanged(ChannelHandlerContext ctx) {
         // invokeResult is ready
         RpcInvoker invoker = httpCtx.getInvoker();
-        if (invoker.getState() == RpcInvoker.InvokerState.FINISHED && invokeResult != null){
-            ChannelFuture future = ctx.channel().writeAndFlush(invokeResult);
-            final ChannelHandlerContext context = ctx;
-            future.addListener((ChannelFuture writeFuture) -> {
-                if (writeFuture.isSuccess()) {
-                    context.channel().close();
-                }
-                else {
-                    Throwable cause = writeFuture.cause();
-                    if (cause instanceof Exception) {
-                        httpCtx.setSendFastMessage(true);
-                        ChannelFuture f = FastMessageSender.send(ctx, new FastMessage((Exception) cause));
-                        f.addListener(ChannelFutureListener.CLOSE);
-                    }
-                    else {
-                        context.channel().close();
-                    }
-                }
-            });
+        switch (invoker.getState()) {
+            case SUCCESS:
+                handleResultSuccess(ctx, invokeResult);
+                break;
+            case FAIL:
+                handleResultFail(ctx);
+                break;
+            case TIMEOUT:
+                handleResultTimeout(ctx);
         }
+    }
 
+    private void handleResultSuccess(final ChannelHandlerContext ctx, Object invokeResult) {
+        // invokeResult is not null
+        ChannelFuture future = ctx.channel().writeAndFlush(invokeResult);
+        final ChannelHandlerContext context = ctx;
+        future.addListener((ChannelFuture writeFuture) -> {
+            if (writeFuture.isSuccess()) {
+                context.channel().close();
+            }
+            else {
+                futureFailForCause(context, writeFuture.cause());
+            }
+        });
+    }
+
+    private void handleResultFail(final ChannelHandlerContext ctx) {
+        httpCtx.setSendFastMessage(true);
+        FastMessage message = new FastMessage("Downstream connection lose.");
+        message.setHttpResponseStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+        FastMessageSender.send(ctx, message).addListener(ChannelFutureListener.CLOSE);
+    }
+
+    private void handleResultTimeout(final ChannelHandlerContext ctx) {
+        httpCtx.setSendFastMessage(true);
+        FastMessage message = new FastMessage("Downstream service timeout.");
+        message.setHttpResponseStatus(HttpResponseStatus.REQUEST_TIMEOUT);
+        FastMessageSender.send(ctx, message).addListener(ChannelFutureListener.CLOSE);
+    }
+
+    private void futureFailForCause(ChannelHandlerContext ctx, Throwable cause) {
+        futureFailForCause(ctx.channel(), cause);
+    }
+
+    /**
+     * Send back a fast message or just close the channel when future fails.
+     * @param channel the channel to operate on
+     * @param cause the cause of future's failure
+     */
+    private void futureFailForCause(Channel channel, Throwable cause) {
+        if (cause instanceof Exception) {
+            httpCtx.setSendFastMessage(true);
+            ChannelFuture f = FastMessageSender.send(channel, new FastMessage((Exception) cause));
+            f.addListener(ChannelFutureListener.CLOSE);
+        }
+        else {
+            channel.close();
+        }
     }
 
     /**
@@ -110,9 +148,8 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
             doInvoke(invoker);
         }
         else {
-            // close the http connection if the backend connections fails.
-            // TODO: record failue and send back fast response.
-            currentChannel.close();
+            // send back fast message and close channel if the backend connections fails.
+            futureFailForCause(currentChannel, future.cause());
         }
     }
 
@@ -120,7 +157,7 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
         if (invoker.getState() == RpcInvoker.InvokerState.ACTIVE && invokeParam != null) {
             logger.info("Sending message to RPC channel pipeline,");
             invoker.invokeAsync(invokeParam)
-                    .addListener((x) -> logger.info("Thrift call sent to downstream service."));
+                    .addListener((x) -> logger.info("Request sent to RPC channel."));
         }
     }
 
