@@ -138,6 +138,9 @@ public class UriMatcherImpl<T> implements UriMatcher<T> {
             unregister(pattern);
     }
 
+    /**
+     * remove all and enable resolve circuler reference.
+     */
     @Override
     public synchronized void clear() {
         this.rootLevel.clear();

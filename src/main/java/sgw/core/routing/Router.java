@@ -118,6 +118,9 @@ public class Router {
      * clear all routing setting.
      */
     public void clear() {
+        for (UriMatcher matcher: mappings.values()) {
+            matcher.clear();
+        }
         mappings.clear();
     }
 
@@ -130,11 +133,11 @@ public class Router {
         putAll(map);
     }
 
-    public static Router createFromConfig() throws Exception {
-        return createFromConfig(null);
+    public static Router initFromConfig() throws Exception {
+        return initFromConfig(null);
     }
 
-    public static Router createFromConfig(String filePath) throws Exception {
+    public static Router initFromConfig(String filePath) throws Exception {
         // first try Yaml
         RouterCompiler compiler;
         if ((compiler = new YamlRouterCompiler(filePath)).checkExist()) {

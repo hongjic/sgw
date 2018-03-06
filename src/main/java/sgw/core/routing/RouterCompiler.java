@@ -5,12 +5,11 @@ import sgw.core.http_channel.HttpRequestDef;
 import sgw.core.service_channel.RpcInvokerDef;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
-public abstract class RouterCompiler {
+public abstract class RouterCompiler implements RouterInitializer {
 
     protected File configFile;
 
@@ -22,6 +21,11 @@ public abstract class RouterCompiler {
         if (configFile == null)
             configFile = new File(getFilePath());
         return configFile.exists();
+    }
+
+    @Override
+    public Router init() throws Exception {
+        return compile();
     }
 
     /**
@@ -48,7 +52,7 @@ public abstract class RouterCompiler {
                 .values().stream()
                 .map(invokerDef -> invokerDef.getHttpConvertorClazzName())
                 .collect(Collectors.toList());
-        Convertors.Cache.cacheAllConvertors(httpConvertorClazzNames);
+        Convertors.Cache.cacheAllConvertorsByName(httpConvertorClazzNames);
     }
 
     abstract protected String getFilePath();

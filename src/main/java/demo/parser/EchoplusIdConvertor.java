@@ -3,19 +3,19 @@ package demo.parser;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import demo.gen.echoplus.service.EchoplusService;
 import demo.gen.echoplus.struct.Input;
 import demo.gen.echoplus.struct.Output;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.util.CharsetUtil;
-import sgw.core.data_convertor.annotations.PathVar;
-import sgw.core.data_convertor.annotations.RequestParser;
-import sgw.core.data_convertor.annotations.ResponseGenerator;
-import sgw.core.data_convertor.annotations.ResponseHeaders;
+import sgw.core.data_convertor.annotations.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@ThriftRouter(http = {"POST", "/echoplus/{id}"}, service = "echoplusservice", method = "echo",
+        args = EchoplusService.echo_args.class, result = EchoplusService.echo_result.class)
 public class EchoplusIdConvertor {
 
     @ResponseHeaders

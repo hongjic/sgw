@@ -11,6 +11,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import sgw.core.routing.Router;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
+import sgw.core.util.Args;
 
 public class NettyGatewayServer {
 
@@ -24,12 +25,14 @@ public class NettyGatewayServer {
     private HttpChannelInitializer httpChannelInitializer;
     private Router router;
     private RpcInvokerDiscoverer discoverer;
+    private NettyGatewayServerConfig config;
 
     /**
      *
      * @param config configuration for thread pool strategy.
      */
     public NettyGatewayServer(NettyGatewayServerConfig config) throws Exception {
+        this.config = config;
         serverPort = config.getPort();
         ThreadPoolStrategy strategy = config.getThreadPoolStrategy();
         strategy.createThreadPool();
@@ -38,12 +41,7 @@ public class NettyGatewayServer {
         backendGroup = strategy.getBackendGroup();
 
         try {
-            router = Router.createFromConfig();
             discoverer = new RpcInvokerDiscoverer.Builder().loadFromConfig().build();
-
-            httpChannelInitializer = new HttpChannelInitializer(config);
-            httpChannelInitializer.setRouter(router);
-            httpChannelInitializer.setDiscoverer(discoverer);
         } catch (Exception e) {
             logger.error("Server Initialization failed.");
             throw e;
@@ -54,7 +52,20 @@ public class NettyGatewayServer {
         return router;
     }
 
+    public void setRouter(Router router) {
+        if (this.router != null) {
+            // this is necessary to resolve circuler reference.
+            this.router.clear();
+        }
+        this.router = router;
+    }
+
     public void start() throws Exception {
+        Args.notNull(router, "router");
+        Args.notNull(discoverer, "discoverer");
+        httpChannelInitializer = new HttpChannelInitializer(config);
+        httpChannelInitializer.setRouter(router);
+        httpChannelInitializer.setDiscoverer(discoverer);
         try {
             discoverer.start();
             ServerBootstrap b = new ServerBootstrap();

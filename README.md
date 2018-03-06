@@ -19,9 +19,7 @@
 		```
 		thriftServices:
   		  - http: POST /echo # http请求
-	    	requestParser: # http请求解析器类名
-    		responseGenerator: # http响应生成器类名
-    		dupleConvertor: # 即是http请求解析器也是http响应生成器。覆盖requestParser和responseGenerator的配置
+    		convertor: # 解析请求和生成响应的类
     		service: echoservice # 下游服务名（zookeeper中的名字）
 		    method: echo # 下游服务方法名
 		    clazz: # thrift生成的类名
@@ -31,10 +29,14 @@
 
 		```
 	* 支持模版匹配
+		@PathVar注入
+		
 		```
 			- http: POST /echo/{id}
 		```
-	* 网关启动时通过代码配置
+		
+	* 网关启动时通过扫描package加载@Router类
+		
 	* 通过客户端工具运行时更改路由配置**（未完成）**
 	
 		作为一种特殊的请求，同样在netty中处理。

@@ -40,10 +40,18 @@ public enum Convertors {
         return getConvertorInfo(httpConvertorClazz.getName());
     }
 
-    public void cacheAllConvertors(Collection<String> col) throws Exception {
+    public void cacheAllConvertorsByName(Collection<String> col) throws Exception {
         Map<String, ConvertorInfo> map = new HashMap<>();
         for (String clazzName: col) {
             map.put(clazzName, ConvertorInfo.create(clazzName));
+        }
+        infoCache.putAll(map);
+    }
+
+    public void cacheAllConvertors(Collection<Class<?>> col) throws Exception {
+        Map<String, ConvertorInfo> map = new HashMap<>();
+        for (Class<?> clazz: col) {
+            map.put(clazz.getName(), ConvertorInfo.create(clazz));
         }
         infoCache.putAll(map);
     }

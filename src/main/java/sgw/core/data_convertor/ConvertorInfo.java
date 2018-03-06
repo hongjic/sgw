@@ -57,20 +57,26 @@ public class ConvertorInfo {
         return parserPathVarNames;
     }
 
-    public static ConvertorInfo create(String httpConvertorClazzName) throws Exception {
+    public static ConvertorInfo create(String convertorClazzName) throws Exception {
         Class<?> convertorClazz;
+
+        try {
+            convertorClazz = Class.forName(convertorClazzName);
+        } catch (ClassNotFoundException e) {
+            logger.error("Convertor class named as {} can not be found.", convertorClazzName);
+            throw e;
+        }
+
+        return create(convertorClazz);
+    }
+
+    public static ConvertorInfo create(Class<?> convertorClazz) throws Exception {
         Object convertor;
         Method requestParser = null;
         Method responseGenerator = null;
         Parameter[] parserParams;
         String[] parserPathVarNames;
-        try {
-            convertorClazz = Class.forName(httpConvertorClazzName);
-            convertor = convertorClazz.newInstance();
-        } catch (ClassNotFoundException e) {
-            logger.error("Convertor class named as {} can not be found.", httpConvertorClazzName);
-            throw e;
-        }
+        convertor = convertorClazz.newInstance();
 
         // get methods
         Method[] methods = convertorClazz.getDeclaredMethods();
@@ -84,7 +90,7 @@ public class ConvertorInfo {
         // validate methods
         if (requestParser == null || responseGenerator == null) {
             String message = "@RequestParser or @ResponseGenerator is missing for convertor class " +
-                    httpConvertorClazzName + ".";
+                    convertorClazz.getName() + ".";
             logger.error(message);
             throw new InvalidConvertorException(message);
         }
@@ -92,10 +98,10 @@ public class ConvertorInfo {
         // validate method return type
         if (!Object[].class.isAssignableFrom(requestParser.getReturnType()))
             throw new InvalidConvertorException("Return type of @RequestParser in class " +
-                    httpConvertorClazzName + " is not valid.");
+                    convertorClazz.getName() + " is not valid.");
         if (!String.class.isAssignableFrom(responseGenerator.getReturnType()))
             throw new InvalidConvertorException("Return type of @ResponseGenerator in class " +
-                    httpConvertorClazzName + " is not valid.");
+                    convertorClazz.getName() + " is not valid.");
 
         // find annotated path variables
         parserParams = requestParser.getParameters();

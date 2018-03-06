@@ -188,7 +188,7 @@ public class RouterTest {
     @Test
     public void testLoadFromConfig() {
         try {
-            router = Router.createFromConfig(configFilePath);
+            router = Router.initFromConfig(configFilePath);
             RpcInvokerDef invokerDef;
             invokerDef = router.get(new HttpRequestDef(HttpMethod.POST, "/echo"));
             checkInvokerDef("echoservice", "echo", invokerDef);
