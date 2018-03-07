@@ -1,0 +1,16 @@
+thriftServices:
+  - service: echoservice
+    method: echo
+    http: POST /echo
+    convertor: sgw.demo.parser.EchoConvertor
+    clazz: sgw.demo.gen.echo.service.EchoService
+  - service: echoplusservice
+    method: echo
+    http: POST /echoplus
+    convertor: sgw.demo.parser.EchoplusConvertor
+    clazz: sgw.demo.gen.echoplus.service.EchoplusService
+  - http: POST /echoplus/{id}
+    convertor: sgw.demo.parser.EchoplusIdConvertor
+    service: echoplusservice
+    method: echo
+    clazz: sgw.demo.gen.echoplus.service.EchoplusService
