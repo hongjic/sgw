@@ -3,12 +3,10 @@ package sgw.core.data_convertor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.util.CopyOnWriteHashMap;
-import sun.tools.java.ClassNotFound;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This class will be shared among threads.
