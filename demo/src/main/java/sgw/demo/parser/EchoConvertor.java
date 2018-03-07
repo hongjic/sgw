@@ -1,7 +1,6 @@
-package demo.parser;
+package sgw.demo.parser;
 
-import demo.gen.echo.service.EchoService;
-import demo.gen.echoplus.service.EchoplusService;
+import sgw.demo.gen.echo.service.EchoService;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.util.CharsetUtil;
 import sgw.core.data_convertor.annotations.RequestParser;

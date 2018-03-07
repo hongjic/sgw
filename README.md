@@ -100,12 +100,12 @@
 ## 扩展
 关于如何扩展
 ## Demo
-[demo.DemoServer](./src/main/java/demo/DemoServer.java)
+[sgw.demo.DemoServer](./src/main/java/demo/DemoServer.java)
 
 
 <!--## 运行
 1. 启动`examples.thrift_service.ThriftEchoServer` 端口hardcode为9090
-2. 启动`sgw.NettyGatewayServer`  默认绑定8080端口，目前service discovery是hardcode的，直接会连接到localhosst:9090
+2. 启动`sgw.core.NettyGatewayServer`  默认绑定8080端口，目前service discovery是hardcode的，直接会连接到localhosst:9090
 3. http客户端POST http://localhost:8080/aaa 请求体附上一端字符串string
 4. http响应体："This is return result: " + string
 

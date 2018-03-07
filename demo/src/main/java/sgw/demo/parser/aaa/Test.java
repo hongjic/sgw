@@ -1,4 +1,4 @@
-package demo.parser.aaa;
+package sgw.demo.parser.aaa;
 
 public class Test {
 }

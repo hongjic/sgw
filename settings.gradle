@@ -1,1 +1,4 @@
 rootProject.name = 'sgw'
+include 'sgw-monitor'
+include 'demo'
+include 'sgw-core'

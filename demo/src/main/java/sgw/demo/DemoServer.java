@@ -1,10 +1,11 @@
-package demo;
+package sgw.demo;
 
-import sgw.NettyGatewayServer;
-import sgw.NettyGatewayServerConfig;
-import sgw.ThreadPoolStrategy;
+import sgw.core.NettyGatewayServer;
+import sgw.core.NettyGatewayServerConfig;
+import sgw.core.ThreadPoolStrategy;
 import sgw.core.routing.Router;
 import sgw.core.routing.RouterScanner;
+import sgw.core.service_discovery.RpcInvokerDiscoverer;
 
 public class DemoServer {
 
@@ -19,8 +20,11 @@ public class DemoServer {
              * init Router by scanning annotation
              */
             Router router = new RouterScanner()
-                    .ofPackage("demo.parser")
+                    .ofPackage("sgw.demo.parser")
                     .init();
+            RpcInvokerDiscoverer discoverer = new RpcInvokerDiscoverer.Builder()
+                    .loadFromConfig("demo/src/main/resources/discovery.properties")
+                    .build("demo/src/main/resources/zookeeper.properties");
 
 //            /**
 //             * init Router from routing.yaml
@@ -28,6 +32,7 @@ public class DemoServer {
 //            Router router = Router.initFromConfig();
 
             server.setRouter(router);
+            server.setDiscoverer(discoverer);
             server.start();
         } catch (Exception e) {
             e.printStackTrace();

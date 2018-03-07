@@ -1,11 +1,11 @@
-package demo.parser;
+package sgw.demo.parser;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import demo.gen.echoplus.service.EchoplusService;
-import demo.gen.echoplus.struct.Input;
-import demo.gen.echoplus.struct.Output;
+import sgw.demo.gen.echoplus.service.EchoplusService;
+import sgw.demo.gen.echoplus.struct.Input;
+import sgw.demo.gen.echoplus.struct.Output;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
