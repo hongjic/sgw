@@ -19,7 +19,6 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
      * When using Thrift, it is a ThriftCallWrapper object representing the Thrift request
      */
     private Object invokeParam;
-    private Object invokeResult;
     private HttpChannelContext httpCtx;
 
     public ServiceInvokeHandler(HttpChannelContext httpCtx) {
@@ -28,6 +27,7 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        httpCtx.put("invoke_handler_start", System.currentTimeMillis());
         invokeParam = msg;
 
         Channel inBoundChannel = ctx.channel();
@@ -37,16 +37,14 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    public void receiveResult(Object result) {
-        this.invokeResult = result;
-    }
-
     @Override
-    public void channelWritabilityChanged(ChannelHandlerContext ctx) {
+    public void channelWritabilityChanged(ChannelHandlerContext ctx) throws Exception {
         // invokeResult is ready
+        httpCtx.put("writability_changed_start", System.currentTimeMillis());
         RpcInvoker invoker = httpCtx.getInvoker();
         switch (invoker.getState()) {
             case SUCCESS:
+                Object invokeResult = httpCtx.getInvokeResult();
                 handleResultSuccess(ctx, invokeResult);
                 break;
             case FAIL:
@@ -54,6 +52,10 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
                 break;
             case TIMEOUT:
                 handleResultTimeout(ctx);
+                break;
+            default:
+                throw new Exception("invoker state: " + invoker.getState().name());
+
         }
     }
 
@@ -73,7 +75,7 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
 
     private void handleResultFail(final ChannelHandlerContext ctx) {
         httpCtx.setSendFastMessage(true);
-        FastMessage message = new FastMessage("Downstream connection lose.");
+        FastMessage message = new FastMessage("Downstream service Fail.");
         message.setHttpResponseStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
         FastMessageSender.send(ctx, message).addListener(ChannelFutureListener.CLOSE);
     }
@@ -95,6 +97,7 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
      * @param cause the cause of future's failure
      */
     private void futureFailForCause(Channel channel, Throwable cause) {
+        cause.printStackTrace();
         if (cause instanceof Exception) {
             httpCtx.setSendFastMessage(true);
             ChannelFuture f = FastMessageSender.send(channel, new FastMessage((Exception) cause));
@@ -118,9 +121,9 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
              * register the rpc channels to the same thread as the Http channel
              * to reduce potential context switching.
              */
-            invoker.register(currentChannel.eventLoop(), this);
+            invoker.register(currentChannel.eventLoop(), httpCtx);
         } else {
-            invoker.register(tpStrategy.getBackendGroup(), this);
+            invoker.register(tpStrategy.getBackendGroup(), httpCtx);
         }
 
         ChannelFuture future = invoker.connectAsync();

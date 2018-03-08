@@ -33,6 +33,7 @@ public class HttpReqToThrift extends MessageToMessageDecoder<FullHttpRequest>{
 
     @Override
     public void decode(ChannelHandlerContext ctx, FullHttpRequest request, List<Object> out) throws Exception {
+        httpCtx.put("request_convertor_handler_start", System.currentTimeMillis());
         // FullHttpRequestParser has been created before this.
         FullHttpRequestParser requestParser = httpCtx.getFullHttpRequestParser();
         logger.debug("Converting Http request to Thrift request BY {}", requestParser.getClass().getName());

@@ -1,5 +1,6 @@
 package sgw.core;
 
+import io.netty.channel.WriteBufferWaterMark;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.http_channel.HttpChannelInitializer;
@@ -75,6 +76,8 @@ public class NettyGatewayServer {
                     .channel(NioServerSocketChannel.class)
                     .childHandler(httpChannelInitializer)
                     .option(ChannelOption.SO_BACKLOG, 1024)
+                    .option(ChannelOption.MAX_MESSAGES_PER_READ, 128)
+                    .option(ChannelOption.WRITE_SPIN_COUNT, 128)
                     .childOption(ChannelOption.SO_KEEPALIVE, false);
 
             ChannelFuture f = b.bind(serverPort).sync();

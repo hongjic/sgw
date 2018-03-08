@@ -35,6 +35,7 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        httpCtx.put("routing_handler_start", System.currentTimeMillis());
         Router router = httpCtx.getRouter();
         // init service detector
         RpcInvokerDiscoverer invokerDetector = httpCtx.getInvokerDiscoverer();

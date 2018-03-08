@@ -40,6 +40,7 @@ public class ThriftToHttpRsp extends MessageToMessageEncoder<ThriftCallWrapper> 
      */
     @Override
     public void encode(ChannelHandlerContext ctx, ThriftCallWrapper wrapper, List<Object> out) throws Exception {
+        httpCtx.put("response_convertor_handler_start", System.currentTimeMillis());
         TBase result = wrapper.getResult();
         FullHttpResponseGenerator responseGenerator = httpCtx.getResponseGenerator();
         logger.debug("Converting Thrift response to Http response BY {}",

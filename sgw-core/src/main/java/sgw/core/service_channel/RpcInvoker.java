@@ -3,6 +3,7 @@ package sgw.core.service_channel;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.EventLoopGroup;
+import sgw.core.http_channel.HttpChannelContext;
 import sgw.core.http_channel.ServiceInvokeHandler;
 
 /**
@@ -18,7 +19,7 @@ public interface RpcInvoker {
      * @param group The eventloop group that the rpc channel will use.
      * @return self
      */
-    RpcInvoker register(EventLoopGroup group, ServiceInvokeHandler invokeHandler);
+    RpcInvoker register(EventLoopGroup group, HttpChannelContext httpCtx);
 
     /**
      * Connect to remote service
@@ -33,10 +34,9 @@ public interface RpcInvoker {
 
     /**
      * This method is invoked by the rpc channel when the request has been completed or failed.
-     * Telling the http channel to handle the returned result.
-     * @param result rpc return object
+     * Telling the http channel to handle the invokeResult put in http channel context.
      */
-    void handleResult(Object result);
+    void handleResult(Object reuslt, RpcChannelContext rpcCtx);
 
     /**
      * Bind the http channel to RpcInvoker

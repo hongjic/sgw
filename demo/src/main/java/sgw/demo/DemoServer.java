@@ -3,9 +3,14 @@ package sgw.demo;
 import sgw.core.NettyGatewayServer;
 import sgw.core.NettyGatewayServerConfig;
 import sgw.core.ThreadPoolStrategy;
+import sgw.core.filters.FilterMngr;
 import sgw.core.routing.Router;
 import sgw.core.routing.RouterScanner;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
+import sgw.monitors.filters.ReceiveRequestCounter;
+import sgw.monitors.filters.SendResponseCounter;
+
+import java.util.Arrays;
 
 public class DemoServer {
 
@@ -25,6 +30,11 @@ public class DemoServer {
             RpcInvokerDiscoverer discoverer = new RpcInvokerDiscoverer.Builder()
                     .loadFromConfig("demo/src/main/resources/discovery.properties")
                     .build("demo/src/main/resources/zookeeper.properties");
+
+            FilterMngr.Instance.addFilters(
+                    new ReceiveRequestCounter(),
+                    new SendResponseCounter()
+            );
 
 //            /**
 //             * init Router from routing.yaml

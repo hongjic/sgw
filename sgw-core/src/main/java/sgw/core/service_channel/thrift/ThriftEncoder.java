@@ -34,7 +34,7 @@ public class ThriftEncoder extends MessageToByteEncoder<ThriftCallWrapper> {
         thriftCtx.setCallWrapper(wrapper);
         writeFrameBuffer(out, wrapper);
         writeSizeBuffer(out);
-        thriftCtx.setStartTime(System.currentTimeMillis());
+        thriftCtx.setRpcSendTime(System.currentTimeMillis());
     }
 
     private void writeSizeBuffer(ByteBuf buf) {

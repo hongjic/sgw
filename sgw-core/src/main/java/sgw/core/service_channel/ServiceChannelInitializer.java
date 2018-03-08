@@ -2,6 +2,7 @@ package sgw.core.service_channel;
 
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
+import sgw.core.http_channel.HttpChannelContext;
 import sgw.core.http_channel.HttpChannelInitializer;
 import sgw.core.service_channel.thrift.ThriftChannelContext;
 import sgw.core.service_channel.thrift.ThriftDecoder;
@@ -31,8 +32,8 @@ public class ServiceChannelInitializer extends ChannelInitializer<SocketChannel>
         switch (protocol) {
             case Thrift: {
                 ThriftChannelContext thriftCtx = new ThriftChannelContext();
-                thriftCtx.setInvoker(invoker);
-                thriftCtx.setInvokerDef(invokerDef);
+                thriftCtx.setRpcInvoker(invoker);
+                thriftCtx.setRpcInvokerDef(invokerDef);
 
                 // outbound handlers: encode and send request
                 pipeline.addLast("thriftEncoder", new ThriftEncoder(thriftCtx));

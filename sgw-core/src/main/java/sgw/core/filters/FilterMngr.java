@@ -23,13 +23,13 @@ public enum FilterMngr {
     FilterMngr() {
         filters[0] = new CopyOnWriteArrayList<>();
         filters[1] = new CopyOnWriteArrayList<>();
-        addFilters(Arrays.asList(new DateHeader()));
+        addFilters(new DateHeader());
     }
 
-    public void addFilters(Collection<AbstractFilter> collection) {
-        for (AbstractFilter filter: collection) {
+    public void addFilters(AbstractFilter... filters) {
+        for (AbstractFilter filter: filters) {
             int index = index(filter.filterType());
-            filters[index].add(filter);
+            this.filters[index].add(filter);
         }
     }
 

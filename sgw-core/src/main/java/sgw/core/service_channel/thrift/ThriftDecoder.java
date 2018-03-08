@@ -31,6 +31,7 @@ public class ThriftDecoder extends ByteToMessageDecoder {
 
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
+        thriftCtx.setRpcRecvTime(System.currentTimeMillis());
         logger.debug("Received Thrift response, start decoding Thrift response.");
         if (!sizeDecoded) {
             tryDecodeFrameSize(buf);

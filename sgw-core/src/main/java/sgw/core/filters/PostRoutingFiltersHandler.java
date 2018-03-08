@@ -18,6 +18,7 @@ public class PostRoutingFiltersHandler extends ChannelOutboundHandlerAdapter {
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
+        httpCtx.put("post_filters_start", System.currentTimeMillis());
         /**
          * msg type: FullHttpResponse
          */

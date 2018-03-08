@@ -5,7 +5,9 @@ import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sgw.core.http_channel.HttpChannelContext;
 import sgw.core.http_channel.ServiceInvokeHandler;
+import sgw.core.service_channel.RpcChannelContext;
 import sgw.core.service_channel.ServiceChannelInitializer;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;
@@ -26,7 +28,7 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
     private Channel thriftChannel;
     private Channel inboundChannel;
     private InvokerState state;
-    private ServiceInvokeHandler invokeHandler;
+    private HttpChannelContext httpCtx;
 
     public ThriftNonblockingInvoker(RpcInvokerDef invokerDef, SocketAddress remoteAddress) {
         this.invokerDef = invokerDef;
@@ -35,14 +37,14 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
     }
 
     @Override
-    public ThriftNonblockingInvoker register(EventLoopGroup group, ServiceInvokeHandler invokeHandler) {
+    public ThriftNonblockingInvoker register(EventLoopGroup group, HttpChannelContext httpCtx) {
         if (bootstrap == null) {
             bootstrap = new Bootstrap();
             bootstrap.channel(NioSocketChannel.class)
                     .handler(new ServiceChannelInitializer(invokerDef, this));
         }
+        this.httpCtx = httpCtx;
         bootstrap.group(group);
-        this.invokeHandler = invokeHandler;
         return this;
     }
 
@@ -77,16 +79,17 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
     }
 
     @Override
-    public void handleResult(Object result) {
+    public void handleResult(Object result, RpcChannelContext rpcCtx) {
         EventLoop inboundEventLoop = inboundChannel.eventLoop();
         if (inboundEventLoop.inEventLoop())
-            handleResult0(result);
+            handleResult0(result, rpcCtx);
         else
-            inboundEventLoop.execute(() -> handleResult0(result));
+            inboundEventLoop.execute(() -> handleResult0(result, rpcCtx));
     }
 
-    private void handleResult0(Object result) {
-        invokeHandler.receiveResult(result);
+    private void handleResult0(Object result, RpcChannelContext rpcCtx) {
+        httpCtx.setRpcChannelContext(rpcCtx);
+        httpCtx.setInvokeResult(result);
         inboundChannel.pipeline().fireChannelWritabilityChanged();
     }
 
@@ -120,4 +123,5 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
     public void setInboundChannel(Channel channel) {
         inboundChannel = channel;
     }
+
 }

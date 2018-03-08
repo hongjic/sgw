@@ -19,6 +19,7 @@ public class PreRoutingFiltersHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
+        httpCtx.put("pre_filters_start", System.currentTimeMillis());
         /**
          * msg type: {@link FullHttpRequest}
          */

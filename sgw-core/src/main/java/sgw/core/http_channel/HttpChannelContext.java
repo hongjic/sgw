@@ -4,6 +4,7 @@ import io.netty.channel.Channel;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import sgw.core.NettyGatewayServerConfig;
+import sgw.core.service_channel.RpcChannelContext;
 import sgw.core.util.FastMessage;
 import sgw.core.routing.Router;
 import sgw.core.service_channel.RpcInvoker;
@@ -32,6 +33,8 @@ public final class HttpChannelContext extends HashMap<String, Object> {
     private static final String RESPONSE_GENERATOR = "response_generator";
     private static final String GATEWAY_SERVER_CONFIG = "gateway_server_config";
     private static final String HTTP_CHANNEL = "http_channel";
+    private static final String RPC_CHANNEL_CONTEXT = "rpc_channel_context";
+    private static final String RPC_INVOKE_RESULT = "rpc_invoke_result";
 
     public FullHttpRequest getHttpRequest() {
         return (FullHttpRequest) get(HTTP_REQUEST);
@@ -127,5 +130,25 @@ public final class HttpChannelContext extends HashMap<String, Object> {
 
     public RpcInvokerDef getInvokerDef() {
         return (RpcInvokerDef) get(INVOKER_DEF);
+    }
+
+    public void setRpcChannelContext(RpcChannelContext rpcCtx) {
+        put(RPC_CHANNEL_CONTEXT, rpcCtx);
+    }
+
+    public long getRpcSentTime() {
+        return ((RpcChannelContext) get(RPC_CHANNEL_CONTEXT)).getRpcSentTime();
+    }
+
+    public long getRpcRecvTime() {
+        return ((RpcChannelContext) get(RPC_CHANNEL_CONTEXT)).getRpcRecvTime();
+    }
+
+    public void setInvokeResult(Object invokeResult) {
+        put(RPC_INVOKE_RESULT, invokeResult);
+    }
+
+    public Object getInvokeResult() {
+        return get(RPC_INVOKE_RESULT);
     }
 }

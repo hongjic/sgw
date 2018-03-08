@@ -5,6 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sgw.core.http_channel.HttpChannelContext;
 import sgw.core.service_channel.thrift.ThriftCallWrapper;
 import sgw.core.service_channel.thrift.ThriftChannelContext;
 
@@ -18,9 +19,11 @@ public class RpcFinalHandler extends ChannelInboundHandlerAdapter {
     private final Logger logger = LoggerFactory.getLogger(RpcFinalHandler.class);
 
     private RpcInvoker invoker;
+    private ThriftChannelContext thriftCtx;
 
     public RpcFinalHandler(ThriftChannelContext thriftCtx) {
-        this.invoker = thriftCtx.getInvoker();
+        this.invoker = thriftCtx.getRpcInvoker();
+        this.thriftCtx = thriftCtx;
     }
 
     @Override
@@ -39,8 +42,12 @@ public class RpcFinalHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
+    /**
+     * Put thrift channel context back into http context
+     * @param result
+     */
     private void writeBackToHttpChannel(Object result)  {
-        invoker.handleResult(result);
+        invoker.handleResult(result, thriftCtx);
     }
 
     @Override
