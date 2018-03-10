@@ -72,7 +72,7 @@ public class ServiceInvokeHandler extends ChannelInboundHandlerAdapter {
         final ChannelHandlerContext context = ctx;
         future.addListener((ChannelFuture writeFuture) -> {
             if (writeFuture.isSuccess()) {
-//                context.close();
+                context.close();
             }
             else {
                 futureFailForCause(context, writeFuture.cause());
