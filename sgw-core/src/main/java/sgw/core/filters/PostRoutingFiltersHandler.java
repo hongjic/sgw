@@ -3,10 +3,8 @@ package sgw.core.filters;
 import io.netty.channel.*;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.util.ReferenceCountUtil;
-import sgw.core.http_channel.FastMessageToHttpRsp;
 import sgw.core.http_channel.HttpChannelContext;
-import sgw.core.http_channel.HttpChannelInitializer;
-import sgw.core.util.FastMessageSender;
+import sgw.core.util.FastMessage;
 
 public class PostRoutingFiltersHandler extends ChannelOutboundHandlerAdapter {
 
@@ -32,7 +30,6 @@ public class PostRoutingFiltersHandler extends ChannelOutboundHandlerAdapter {
             ctx.write(msg, promise);
         else {
             int refCnt = ReferenceCountUtil.refCnt(msg);
-            System.out.println("Post filters release msg refCnt: " + refCnt);
             ReferenceCountUtil.release(msg, refCnt);
         }
     }
@@ -55,15 +52,15 @@ public class PostRoutingFiltersHandler extends ChannelOutboundHandlerAdapter {
         try {
             FilterProcessor.Instance.postRouting(httpCtx);
         } catch (AbstractFilter.FilterException e) {
-            ChannelFuture future = FastMessageSender.send(ctx, httpCtx.getFastMessage());
-            future.addListener(ChannelFutureListener.CLOSE);
+            FastMessage fm = httpCtx.getFastMessage();
+            fm.send(ctx, httpCtx).addListener(ChannelFutureListener.CLOSE);
             return false;
         }
 
         boolean sendFastMessage = httpCtx.getSendFastMessage();
         if (sendFastMessage) {
-            ChannelFuture future = FastMessageSender.send(ctx, httpCtx.getFastMessage());
-            future.addListener(ChannelFutureListener.CLOSE);
+            FastMessage fm = httpCtx.getFastMessage();
+            fm.send(ctx, httpCtx).addListener(ChannelFutureListener.CLOSE);
         }
 
         return !sendFastMessage;

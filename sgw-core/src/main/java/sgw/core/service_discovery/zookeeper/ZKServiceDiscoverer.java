@@ -9,12 +9,11 @@ import sgw.core.service_channel.RpcType;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
-import sgw.core.service_channel.thrift.ThriftNonblockingInvoker;
+import sgw.core.service_channel.thrift.ThriftInvoker;
 import sgw.core.service_discovery.ServiceUnavailableException;
 
 import java.io.FileInputStream;
 import java.net.SocketAddress;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
@@ -73,7 +72,7 @@ public class ZKServiceDiscoverer implements RpcInvokerDiscoverer {
                 ServiceNode node = provider.next();
                 if (node != null) {
                     SocketAddress remoteAddress = node.getRemoteAddress();
-                    return new ThriftNonblockingInvoker(invokerDef, remoteAddress);
+                    return new ThriftInvoker(invokerDef, remoteAddress);
                 }
                 else {
                     throw new ServiceUnavailableException(serviceName);

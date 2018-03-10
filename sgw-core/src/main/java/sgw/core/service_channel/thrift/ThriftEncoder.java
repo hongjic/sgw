@@ -24,13 +24,13 @@ public class ThriftEncoder extends MessageToByteEncoder<ThriftCallWrapper> {
 
 
     public ThriftEncoder(ThriftChannelContext thriftCtx) {
-        super();
         this.thriftCtx = thriftCtx;
     }
 
     @Override
     public void encode(ChannelHandlerContext ctx, ThriftCallWrapper wrapper, ByteBuf out) throws TException {
-        logger.debug("Message sent to Thrift channel, start encoding thrift call...");
+        logger.debug("Request {}: Message sent to Thrift channel, start encoding thrift call...",
+                thriftCtx.getHttpRequestId());
         thriftCtx.setCallWrapper(wrapper);
         writeFrameBuffer(out, wrapper);
         writeSizeBuffer(out);

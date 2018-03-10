@@ -75,10 +75,8 @@ public class NettyGatewayServer {
             b.group(acceptor, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .childHandler(httpChannelInitializer)
-                    .option(ChannelOption.SO_BACKLOG, 1024)
-                    .option(ChannelOption.MAX_MESSAGES_PER_READ, 128)
-                    .option(ChannelOption.WRITE_SPIN_COUNT, 128)
-                    .childOption(ChannelOption.SO_KEEPALIVE, false);
+                    .option(ChannelOption.SO_BACKLOG, 128)
+                    .childOption(ChannelOption.SO_KEEPALIVE, true);
 
             ChannelFuture f = b.bind(serverPort).sync();
             f.channel().closeFuture().sync();

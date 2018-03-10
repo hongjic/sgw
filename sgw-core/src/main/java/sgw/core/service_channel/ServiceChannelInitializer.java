@@ -18,10 +18,12 @@ public class ServiceChannelInitializer extends ChannelInitializer<SocketChannel>
 
     private RpcInvoker invoker;
     private RpcInvokerDef invokerDef;
+    private long httpRequestId;
 
-    public ServiceChannelInitializer(RpcInvokerDef invokerDef, RpcInvoker invoker) {
+    public ServiceChannelInitializer(RpcInvokerDef invokerDef, RpcInvoker invoker, long httpRequestId) {
         this.invokerDef = invokerDef;
         this.invoker = invoker;
+        this.httpRequestId = httpRequestId;
     }
 
     @Override
@@ -32,6 +34,7 @@ public class ServiceChannelInitializer extends ChannelInitializer<SocketChannel>
         switch (protocol) {
             case Thrift: {
                 ThriftChannelContext thriftCtx = new ThriftChannelContext();
+                thriftCtx.setHttpRequestId(httpRequestId);
                 thriftCtx.setRpcInvoker(invoker);
                 thriftCtx.setRpcInvokerDef(invokerDef);
 

@@ -17,11 +17,17 @@ public class FastMessageToHttpRsp extends MessageToMessageEncoder<FastMessage> {
 
     private final Logger logger = LoggerFactory.getLogger(FastMessageToHttpRsp.class);
 
+    private HttpChannelContext httpCtx;
+
+    public FastMessageToHttpRsp(HttpChannelContext httpCtx) {
+        this.httpCtx = httpCtx;
+    }
+
     @Override
     public void encode(ChannelHandlerContext ctx, FastMessage message, List<Object> out) throws Exception {
         FullHttpResponseGenerator generator = new FastResponseGenerator();
-        logger.debug("Converting FastMessage to Http response BY {}",
-                generator.getClass().getName());
+        logger.debug("Request {}: Converting FastMessage to Http response BY {}",
+                httpCtx.getRequestId(), generator.getClass().getName());
 
         ByteBuf buf = ctx.alloc().ioBuffer();
         Object[] arr = new Object[1];

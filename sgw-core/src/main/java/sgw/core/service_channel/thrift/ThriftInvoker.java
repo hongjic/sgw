@@ -3,10 +3,10 @@ package sgw.core.service_channel.thrift;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.proxy.ProxyHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.http_channel.HttpChannelContext;
-import sgw.core.http_channel.ServiceInvokeHandler;
 import sgw.core.service_channel.RpcChannelContext;
 import sgw.core.service_channel.ServiceChannelInitializer;
 import sgw.core.service_channel.RpcInvoker;
@@ -18,9 +18,9 @@ import java.net.SocketAddress;
  * has to be thread-safe
  *
  */
-public class ThriftNonblockingInvoker implements RpcInvoker {
+public class ThriftInvoker implements RpcInvoker {
 
-    private Logger logger = LoggerFactory.getLogger(ThriftNonblockingInvoker.class);
+    private Logger logger = LoggerFactory.getLogger(ThriftInvoker.class);
 
     private RpcInvokerDef invokerDef;
     private SocketAddress remoteAddress;
@@ -30,18 +30,19 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
     private InvokerState state;
     private HttpChannelContext httpCtx;
 
-    public ThriftNonblockingInvoker(RpcInvokerDef invokerDef, SocketAddress remoteAddress) {
+    public ThriftInvoker(RpcInvokerDef invokerDef, SocketAddress remoteAddress) {
         this.invokerDef = invokerDef;
         this.remoteAddress = remoteAddress;
         setState(InvokerState.INACTIVE);
     }
 
     @Override
-    public ThriftNonblockingInvoker register(EventLoopGroup group, HttpChannelContext httpCtx) {
+    public ThriftInvoker register(EventLoopGroup group, HttpChannelContext httpCtx) {
         if (bootstrap == null) {
             bootstrap = new Bootstrap();
             bootstrap.channel(NioSocketChannel.class)
-                    .handler(new ServiceChannelInitializer(invokerDef, this));
+                    .handler(new ServiceChannelInitializer(invokerDef, this, httpCtx.getRequestId()))
+                    .option(ChannelOption.AUTO_READ, false);
         }
         this.httpCtx = httpCtx;
         bootstrap.group(group);
@@ -54,9 +55,10 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
             throw new NullPointerException("thriftChannel");
         else if (!thriftChannel.isActive())
             throw new IllegalStateException("Method invokeAsync() called before channel becomes active.");
-        setState(InvokerState.INVOKED);
         // acutual write op will be executed in the thread where the thrift channel belongs.
-        return thriftChannel.writeAndFlush(param);
+        ChannelFuture future = thriftChannel.writeAndFlush(param);
+        setState(InvokerState.INVOKED);
+        return future;
     }
 
     @Override
@@ -122,6 +124,11 @@ public class ThriftNonblockingInvoker implements RpcInvoker {
     @Override
     public void setInboundChannel(Channel channel) {
         inboundChannel = channel;
+    }
+
+    @Override
+    public String toString() {
+        return remoteAddress.toString();
     }
 
 }

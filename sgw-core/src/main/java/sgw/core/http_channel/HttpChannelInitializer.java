@@ -16,6 +16,8 @@ import sgw.core.http_channel.thrift.HttpReqToThrift;
 import sgw.core.http_channel.thrift.ThriftToHttpRsp;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * Only created once during server bootstrap.
  * Whenever a new http request comes in, it uses the same {@link HttpChannelInitializer} instance.

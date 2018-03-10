@@ -30,9 +30,9 @@ public class ReceiveRequestCounter extends AbstractFilter {
     public Object run(HttpChannelContext httpCtx) {
         GatewayMonitor monitor = GatewayMonitor.getInstance();
         long id = monitor.getCounter(GatewayMonitor.RCV_REQ, NumCounter.class).increase();
-        long now = System.currentTimeMillis();
-        httpCtx.put("request_start_time", now);
-        httpCtx.put("request_id", id);
+//        long now = System.currentTimeMillis();
+//        httpCtx.put("request_start_time", now);
+//        httpCtx.put("request_id", id);
 //        logger.info("Receive request {} at {}", id, now);
 
         return null;

@@ -31,7 +31,10 @@ public class ResponseGeneratorImpl implements FullHttpResponseGenerator {
         String responseBody = generateBody(one);
         buf.writeCharSequence(responseBody, CharsetUtil.UTF_8);
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf);
-        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "application/json;charset=UTF-8");
+
+        response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/plain;charset=UTF-8");
+        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, responseBody.length());
+        response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
         return response;
     }
 

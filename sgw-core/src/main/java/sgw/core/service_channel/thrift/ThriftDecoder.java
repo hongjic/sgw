@@ -32,7 +32,8 @@ public class ThriftDecoder extends ByteToMessageDecoder {
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
         thriftCtx.setRpcRecvTime(System.currentTimeMillis());
-        logger.debug("Received Thrift response, start decoding Thrift response.");
+        logger.debug("Request {}: Received Thrift response, start decoding Thrift response.",
+                thriftCtx.getHttpRequestId());
         if (!sizeDecoded) {
             tryDecodeFrameSize(buf);
         }
@@ -60,28 +61,20 @@ public class ThriftDecoder extends ByteToMessageDecoder {
         TProtocol basicProtocol = new TCompactProtocol.Factory().getProtocol(transport);
         TProtocol protocol = new TMultiplexedProtocol(basicProtocol, serviceName);
 
-        try {
-            TBase result = wrapper.getResult();
-
-            TMessage msg = protocol.readMessageBegin();
-            if (msg.type == TMessageType.EXCEPTION) {
-                TApplicationException x = new TApplicationException();
-                x.read(protocol);
-                protocol.readMessageEnd();
-                throw x;
-            }
-            logger.debug("Received {}", msg.seqid);
-            result.read(protocol);
+        TBase result = wrapper.getResult();
+        TMessage msg = protocol.readMessageBegin();
+        if (msg.type == TMessageType.EXCEPTION) {
+            TApplicationException x = new TApplicationException();
+            x.read(protocol);
             protocol.readMessageEnd();
-        } catch (TApplicationException e) {
-            logger.error("Respose type: Exception");
-            throw e;
+            throw x;
         }
+        result.read(protocol);
+        protocol.readMessageEnd();
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-
         cause.printStackTrace();
         ctx.close();
     }

@@ -4,10 +4,19 @@ import java.util.HashMap;
 
 public abstract class RpcChannelContext extends HashMap<String, Object> {
 
+    protected static final String HTTP_REQUEST_ID = "http_request_id";
     protected static final String RPC_SEND_TIME = "rpc_send_time";
     protected static final String RPC_RECV_TIME = "rpc_recv_time";
     protected static final String RPC_INVOKER = "rpc_invoker";
     protected static final String RPC_INVOKER_DEF = "rpc_invoker_def";
+
+    public long getHttpRequestId() {
+        return (long) get(HTTP_REQUEST_ID);
+    }
+
+    public void setHttpRequestId(long id) {
+        put(HTTP_REQUEST_ID, id);
+    }
 
     /**
      *

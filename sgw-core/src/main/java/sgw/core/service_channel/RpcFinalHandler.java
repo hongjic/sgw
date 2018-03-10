@@ -29,16 +29,18 @@ public class RpcFinalHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         if (msg instanceof ThriftCallWrapper) {
-            logger.debug("Sending decoded thrift response back to Http channel pipeline.");
+            logger.debug("Request {}: Sending decoded thrift response back to Http channel pipeline.",
+                    thriftCtx.getHttpRequestId());
             invoker.setState(RpcInvoker.InvokerState.SUCCESS);
             writeBackToHttpChannel(msg);
-
-            ctx.close();
+            if (ctx.channel().isActive())
+                ctx.close();
         }
         else {
-            logger.debug("Unrecognized RPC result type. RPC channel closed.");
+            logger.debug("Request {}: Unrecognized RPC result type. RPC channel closed.",
+                    thriftCtx.getHttpRequestId());
             invoker.setState(RpcInvoker.InvokerState.FAIL);
-            ctx.close();
+            ctx.fireChannelRead(msg);
         }
     }
 
@@ -52,12 +54,16 @@ public class RpcFinalHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        if (invoker.getState() == RpcInvoker.InvokerState.INVOKED) {
-            logger.debug("Thrift connection lose.");
+        if (invoker.getState() == RpcInvoker.InvokerState.SUCCESS) {
+            logger.debug("Request {}: Rpc channel closed.", thriftCtx.getHttpRequestId());
+        }
+        else if (invoker.getState() == RpcInvoker.InvokerState.INVOKED) {
+            logger.debug("Request {}: Thrift connection fail.", thriftCtx.getHttpRequestId());
             invoker.setState(RpcInvoker.InvokerState.FAIL);
             writeBackToHttpChannel(null);
         }
-        ctx.fireChannelInactive();
+        else
+            ctx.fireChannelInactive();
     }
 
 }

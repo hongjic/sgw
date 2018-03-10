@@ -12,12 +12,9 @@ import org.apache.thrift.TBase;
 import org.apache.thrift.TFieldIdEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sgw.core.data_convertor.Convertors;
 import sgw.core.data_convertor.FullHttpResponseGenerator;
 import sgw.core.http_channel.HttpChannelContext;
 import sgw.core.service_channel.thrift.ThriftCallWrapper;
-import sgw.core.util.FastMessage;
-import sgw.core.util.FastMessageSender;
 
 import java.util.List;
 
@@ -43,8 +40,8 @@ public class ThriftToHttpRsp extends MessageToMessageEncoder<ThriftCallWrapper> 
         httpCtx.put("response_convertor_handler_start", System.currentTimeMillis());
         TBase result = wrapper.getResult();
         FullHttpResponseGenerator responseGenerator = httpCtx.getResponseGenerator();
-        logger.debug("Converting Thrift response to Http response BY {}",
-                responseGenerator.getClass().getName());
+        logger.debug("Request {}: Converting Thrift response to Http response BY {}",
+                httpCtx.getRequestId(), responseGenerator.getClass().getName());
         // get size
         int size = 0;
         while (result.fieldForId(size) != null) {

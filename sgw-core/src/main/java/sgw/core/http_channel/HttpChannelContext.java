@@ -21,6 +21,7 @@ import java.util.HashMap;
  */
 public final class HttpChannelContext extends HashMap<String, Object> {
 
+    private static final String REQUEST_ID = "%request_id%";
     private static final String HTTP_REQUEST = "http_request";
     private static final String HTTP_RESPONSE = "http_response";
     private static final String SEND_FAST_RESPONSE = "send_fast_response";
@@ -150,5 +151,13 @@ public final class HttpChannelContext extends HashMap<String, Object> {
 
     public Object getInvokeResult() {
         return get(RPC_INVOKE_RESULT);
+    }
+
+    public void setRequestId(long id) {
+        put(REQUEST_ID, id);
+    }
+
+    public long getRequestId() {
+        return (long) get(REQUEST_ID);
     }
 }

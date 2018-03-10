@@ -17,7 +17,7 @@ public class DemoServer {
     public static void main(String[] args) {
         try {
             NettyGatewayServerConfig config = NettyGatewayServerConfig.getDebugConfig();
-            ThreadPoolStrategy strategy = new ThreadPoolStrategy(ThreadPoolStrategy.MULTI_WORKERS, 16, 0);
+            ThreadPoolStrategy strategy = new ThreadPoolStrategy(ThreadPoolStrategy.MULTI_WORKERS, 1, 1);
             config.setThreadPoolStrategy(strategy);
 
             NettyGatewayServer server = new NettyGatewayServer(config);
@@ -31,10 +31,10 @@ public class DemoServer {
                     .loadFromConfig("demo/src/main/resources/discovery.properties")
                     .build("demo/src/main/resources/zookeeper.properties");
 
-            FilterMngr.Instance.addFilters(
-                    new ReceiveRequestCounter(),
-                    new SendResponseCounter()
-            );
+//            FilterMngr.Instance.addFilters(
+//                    new ReceiveRequestCounter(),
+//                    new SendResponseCounter()
+//            );
 
 //            /**
 //             * init Router from routing.yaml

@@ -12,11 +12,12 @@ import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
 import sgw.core.service_discovery.ServiceUnavailableException;
-import sgw.core.util.FastMessageSender;
+import sgw.core.util.RequestCounter;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * {@link HttpRoutingHandler} first finds {@link RpcInvokerDef} according to the
@@ -28,6 +29,7 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
     private final Logger logger = LoggerFactory.getLogger(HttpRoutingHandler.class);
 
     private HttpChannelContext httpCtx;
+    private final AtomicLong count = new AtomicLong(0);
 
     public HttpRoutingHandler(HttpChannelContext httpCtx) {
         this.httpCtx = httpCtx;
@@ -35,7 +37,9 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        count.incrementAndGet();
         httpCtx.put("routing_handler_start", System.currentTimeMillis());
+        httpCtx.setRequestId(RequestCounter.Instance.incrementAndGet());
         Router router = httpCtx.getRouter();
         // init service detector
         RpcInvokerDiscoverer invokerDetector = httpCtx.getInvokerDiscoverer();
@@ -54,7 +58,7 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
             return;
         }
 
-        logger.debug("Receive Http Request: {} {}", method, uri.toString());
+        logger.debug("Request {}: Http request received: {} {}", httpCtx.getRequestId(), method, uri.toString());
 
         // rpc invoker can be determined as soon as we get HttpRequestDef
         // no need to wait for the full request body arrives.
@@ -63,6 +67,7 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
 
         RpcInvokerDef invokerDef = router.get(httpRequestDef);
         RpcInvoker invoker = invokerDetector.find(invokerDef);
+        logger.debug("Request {}: remote address {}", httpCtx.getRequestId(), invoker.toString());
 
         ConvertorInfo cinfo = Convertors.Cache.getConvertorInfo(invokerDef.getHttpConvertorClazzName());
         FullHttpRequestParser reqPar = new RequestParserImpl(cinfo, pathParams);
@@ -82,37 +87,16 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
     }
 
     @Override
-    public void channelReadComplete(ChannelHandlerContext ctx) {
-        logger.debug("Channel read complete.");
-        ctx.fireChannelReadComplete();
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) {
-        logger.debug("Http channel close.");
-        RpcInvoker.InvokerState state;
-        if ((state = httpCtx.getInvoker().getState()) != RpcInvoker.InvokerState.SUCCESS) {
-            logger.info(state.name());
-        }
-        if (httpCtx.getSendFastMessage()) {
-            logger.info(httpCtx.getFastMessage().getStatus().toString());
-        }
-        ctx.fireChannelInactive();
-    }
-
-    @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         if (cause instanceof ServiceUnavailableException) {
             cause.printStackTrace();
-            httpCtx.setSendFastMessage(true);
-            ChannelFuture future = FastMessageSender.send(ctx, new FastMessage((ServiceUnavailableException) cause));
-            future.addListener(ChannelFutureListener.CLOSE);
+            FastMessage fm = new FastMessage((ServiceUnavailableException) cause);
+            fm.send(ctx, httpCtx).addListener(ChannelFutureListener.CLOSE);
         }
         else if (cause instanceof UndefinedHttpRequestException) {
             cause.printStackTrace();
-            httpCtx.setSendFastMessage(true);
-            ChannelFuture future = FastMessageSender.send(ctx, new FastMessage((UndefinedHttpRequestException) cause));
-            future.addListener(ChannelFutureListener.CLOSE);
+            FastMessage fm = new FastMessage((UndefinedHttpRequestException) cause);
+            fm.send(ctx, httpCtx).addListener(ChannelFutureListener.CLOSE);
         }
         else {
             ctx.fireExceptionCaught(cause);
