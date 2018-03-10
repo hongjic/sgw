@@ -23,10 +23,11 @@ public class Router {
             HttpMethod.OPTIONS,
             HttpMethod.TRACE
     };
-    private final Map<HttpMethod, UriMatcher<RpcInvokerDef>> mappings;
+    private final Map<HttpMethod, UriMatcher<RpcInvokerDef>> mappings = new HashMap<>();
 
     public Router() {
-        mappings = new HashMap<>();
+        for (HttpMethod method: METHODS)
+            mappings.put(method, new UriMatcherImpl<>());
     }
 
     /**
@@ -36,7 +37,7 @@ public class Router {
      * @throws UndefinedHttpRequestException if request can not be found
      */
     public RpcInvokerDef get(HttpRequestDef reqDef) throws UndefinedHttpRequestException {
-        UriMatcher<RpcInvokerDef> uriMatcher = uriMatcher(reqDef.getHttpMethod(), false);
+        UriMatcher<RpcInvokerDef> uriMatcher = uriMatcher(reqDef.getHttpMethod());
         if (uriMatcher == null)
             throw new UndefinedHttpRequestException(reqDef);
 
@@ -56,16 +57,10 @@ public class Router {
     /**
      *
      * @param method Http method
-     * @param create Whether to create a new {@link UriMatcher} when {@param method} not found.
-     * @return The {@link UriMatcher} found. Null if not found and {@param} create set to false.
+     * @return The {@link UriMatcher} found. Null if not found.
      */
-    private UriMatcher<RpcInvokerDef> uriMatcher(HttpMethod method, boolean create) {
-        if (!create || mappings.containsKey(method))
-            return mappings.get(method);
-
-        UriMatcher<RpcInvokerDef> uriMatcher = new UriMatcherImpl<>();
-        mappings.put(method, uriMatcher);
-        return uriMatcher;
+    private UriMatcher<RpcInvokerDef> uriMatcher(HttpMethod method) {
+        return mappings.get(method);
     }
 
     /** Modify single mapping. Don't use this method during initialization, use {@link #clear()} instead.
@@ -75,7 +70,7 @@ public class Router {
      * @return the previous defined rpc request, null if no previous
      */
     public RpcInvokerDef put(HttpRequestDef reqDef, RpcInvokerDef invokerDef) {
-        return uriMatcher(reqDef.getHttpMethod(), true).register(reqDef.getUri(), invokerDef);
+        return uriMatcher(reqDef.getHttpMethod()).register(reqDef.getUri(), invokerDef);
     }
 
     public void putAll(Map<HttpRequestDef, RpcInvokerDef> map) {
@@ -85,7 +80,7 @@ public class Router {
                     .filter(entry -> entry.getKey().getHttpMethod() == method)
                     .collect(Collectors.toMap(entry -> entry.getKey().getUri(), entry -> entry.getValue()));
             if (methodMapping.size() > 0)
-                uriMatcher(method, true).registerAll(methodMapping);
+                uriMatcher(method).registerAll(methodMapping);
         }
     }
 
@@ -95,7 +90,7 @@ public class Router {
      * @return the removed rpc request definition, null if no previous
      */
     public RpcInvokerDef remove(HttpRequestDef reqDef) {
-        UriMatcher<RpcInvokerDef> uriMatcher = uriMatcher(reqDef.getHttpMethod(), false);
+        UriMatcher<RpcInvokerDef> uriMatcher = uriMatcher(reqDef.getHttpMethod());
         if (uriMatcher == null)
             return null;
 
@@ -110,7 +105,7 @@ public class Router {
                     .map(reqDef -> reqDef.getUri())
                     .collect(Collectors.toList());
             if (methodCol.size() > 0)
-                Optional.ofNullable(uriMatcher(method, false)).ifPresent(um -> um.unregisterAll(methodCol));
+                Optional.ofNullable(uriMatcher(method)).ifPresent(um -> um.unregisterAll(methodCol));
         }
     }
 
