@@ -75,8 +75,7 @@ public class NettyGatewayServer {
             b.group(acceptor, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .childHandler(httpChannelInitializer)
-                    .option(ChannelOption.SO_BACKLOG, 128)
-                    .childOption(ChannelOption.SO_KEEPALIVE, true);
+                    .option(ChannelOption.SO_BACKLOG, 128);
 
             ChannelFuture f = b.bind(serverPort).sync();
             f.channel().closeFuture().sync();
