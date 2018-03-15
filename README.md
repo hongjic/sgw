@@ -1,21 +1,31 @@
-# 基于Netty的服务网关
+# SGW
+SGW is a simple non-blocking micro-service gateway built upon Netty, it stands between different types of http clients and all micro-service backends (mostly using faster RPC protocols).
 
-## 依赖
-* Netty 4.1.19.Final
+The main purpose of this project is to build a protocol conversion and request dispatching layer, and aims to handle large throughput (which results in using Netty as the base framework). 
+
+Other features include:
+
+* Service discovery/load balancing
+* Filters
+* Spring style router configuration
+
+[中文文档](./README_CHN.md)
+
+
+## Dependencies
+* use Gradle to build project.
+* Netty 4.1
 * Thrift 0.10.0
-* CuratorFramework
+* CuratorFramework 
 
-## 目标功能
+## Target functions
 
-没有验证过文件上传下载的正确性。因为在alphadog里没有看到文件上传的api，文件下载返回的只是文件地址。
+0. Non-blocking IO
 
-0. NIO
-
-1. 可动态更新路由
-
-	路由加载方式
-	* 网关启动时通过加载配置文件`routing.yaml`
-		
+1. Dynamic Routers
+	
+	* Router configuration using "routing.yaml"
+	
 		```
 		thriftServices:
   		  - http: POST /echo # http请求
@@ -28,65 +38,75 @@
 		xxxServices:
 
 		```
-	* 支持模版匹配
-		@PathVar注入
+	* Spring style router configuration
+		
 		
 		```
-			- http: POST /echo/{id}
+		@ThriftRouter(http = {"POST", "/echo"}, service = "echoservice", method = "echo", args = EchoService.echo_args.class, result = EchoService.echo_result.class)
+      public class EchoConvertor{
+			
+			@RequestParser
+    		public Object[] parse(FullHttpRequest request) {
+        		return new Object[] {request.content().toString(CharsetUtil.UTF_8)};
+    		}
+
+    		@ResponseGenerator
+    		public String generate(String result) {
+        		return result;
+    		}
+		}
 		```
-		
-	* 网关启动时通过扫描package加载@Router类
-		
-	* 通过客户端工具运行时更改路由配置**（未完成）**
+
+	* Routing templates: 
 	
-		作为一种特殊的请求，同样在netty中处理。
-	* 路由的数据结构保证读取的速度，对路由的更新通过创建一个新的hashmap实例的方式防止线程阻塞。
+		```
+			@RequestParser
+		   	public Object[] parse(FullHttpRequest request, @PathVar("id") int id) {
+		   		...
+		   	}
+		```
+		
+	* Routing configuration hot replacement (under development)
+	
 
-2. http和rpc转换
-
-	thrift: 默认和alphadog配置保持一致
-	* protocol：TMultiplexedProtocol --内嵌-> TCompactProtocol
+2. protocol conversion from HTTP to Thrift
+	
+	currently hard coded, plan to enable configuration on thrift protocols.
+	
+	* protocol：TMultiplexedProtocol, TCompactProtocol
 	* transport： TFramedTransport
-	
-3. 服务发现/负载均衡
 
-	* 服务发现和netty线程分开，作为一个background thread运行。
-	* 使用一个zookeeper连接，配置所有的服务，每个服务对应一个本地缓存实例，缓存实时从zookeeper获得更新。
-	* 负载均衡默认采用轮询。负载均衡的数据结构保证获取服务实例的速度，节点更新的操作在zookeeper线程中串行执行。
+	Also planed to provide user interfaces to help support more protocols.
+	
+3. service discovery/load balancing
 
-4. 动态添加（删除）过滤器
-	
-	网关提供两种类型的过滤器。preRouting, routing和postRouting过滤器。（和Zuul过滤器类似）
-	* preRouting: 刚解析完http请求后
-	* routing: 调用下游服务前  **（未完成 本周完成）**
-	* postRouting: 生成http响应后
-	
-	加载过滤器方式：
-	* 网关启动前通过代码配置
-	* 运行时通过客户端工具  **（未完成）**
-		1. 加载新的filter
-		2. disable已加载的filter
-		3. enable被disable的filter
-	
-5. 熔断 **（未完成 本周完成）**
-	
-	熔断完全基于过滤器实现。通过记录下游服务响应的不同状态的次数（成功，失败，超时等），决定对于之后请求的操作（例：直接返回）。（原理和hystrix类似）
+	* cache service node metadata in memory
+	* receive Zookeeper update in real time
+	* using round-robin load balancing strategy. (plan to support customization) 
 
-6. 错误处理
+4. filters
 	
-	request运行过程中抛出异常 和 请求被过滤器过滤等特殊情况，自动快速产生一个对应的http响应。
+	* preRouting filters: filter requests when requests arrive.
+	* postRouting filters: filter responses before sending response.
+	* routing filters: filter requests before sending to backend services.
+	
+5. circuit breaker (under development)
+	
+	behave like hystrix.
+	* built purely on filters
 
-## 请求-响应生命周期
-1. 从数据流中解码，得到的http请求
-2. preRouting过滤器。
-3. 查询http请求对应的下游服务，选择服务节点（服务发现，负载均衡）
-4. routing过滤器
-5. 将http请求转换成thrift请求参数（这里内部调用配置的http请求解析器）
-6. 连接服务节点（生成rpc channel），将thrift请求参数编码成数据流发送至下游服务
-7. 从数据流中解码，得到的thrift响应
-8. 将thrift响应转换成http响应（这里内部调用配置的http响应生成器）
-9. postRouting过滤器
-10. 将http响应编码成数据流发送回客户端
+
+## Request - Response lifecycle
+1. decoding http requests from network
+2. pre-routing filters
+3. Routing: find the matched backend service and use load balancing to get the target service node.
+4. routing filter
+5. convert http request to thrift request (`@RequestParser`)
+6. get a service connection (either established or new) and send the encoded thrift request to the backend. 
+7. decode thrift response
+8. convert thrift response back to http response (`@ResponseGenerator`)
+9. post-routing filter
+10. send http response back to client.
 
 <!--
 1. **请求路由和服务发现** 接受客户端http请求，通过配置好的路由信息启动路由，找到http请求定义`HttpRequestDef`在路由中找到对应的下游服务信息`RpcInvokerDef`：rpc协议，服务名，方法名，数据转换器。 然后通过服务发现获取服务地址等其他信息，创建`RpcInvoker`实例。
@@ -97,11 +117,11 @@
 6. **写回Http channel**  `RpcFinalHandler`
 7. **RPC结果转换成Http响应** 这个部分也有业务逻辑决定，继承`FullHttpResponseGenerator` 实现，在`ResultHttpConvertor`中被调用。-->
 
-## 扩展
-关于如何扩展
+## About Extension
+
+
 ## Demo
 [sgw.demo.DemoServer](./src/main/java/demo/DemoServer.java)
-
 
 <!--## 运行
 1. 启动`examples.thrift_service.ThriftEchoServer` 端口hardcode为9090
