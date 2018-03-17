@@ -16,7 +16,7 @@ public class ResponseGeneratorImpl implements FullHttpResponseGenerator {
     }
 
     /**
-     * Thrift always return only one result. So this method only use the
+     * thrift always return only one result. So this method only use the
      * first element in {@code results} to generate http response.
      * May need to upgrade in future.
      *

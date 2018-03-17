@@ -68,7 +68,7 @@ public class RouterScanner extends PackageScanner implements RouterInitializer {
                         tr.http()[1]);
 
                 RpcInvokerDef invokerDef = new ThriftInvokerDef(
-                        RpcType.Thrift,
+                        RpcType.thrift,
                         tr.service(),
                         tr.method(),
                         tr.args(),

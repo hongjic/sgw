@@ -1,26 +1,21 @@
 package sgw.demo;
 
-import sgw.core.NettyGatewayServer;
-import sgw.core.NettyGatewayServerConfig;
+import sgw.core.GatewayServer;
+import sgw.core.ServerConfig;
 import sgw.core.ThreadPoolStrategy;
-import sgw.core.filters.FilterMngr;
 import sgw.core.routing.Router;
 import sgw.core.routing.RouterScanner;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
-import sgw.monitors.filters.ReceiveRequestCounter;
-import sgw.monitors.filters.SendResponseCounter;
-
-import java.util.Arrays;
 
 public class DemoServer {
 
     public static void main(String[] args) {
         try {
-            NettyGatewayServerConfig config = NettyGatewayServerConfig.getDebugConfig();
+            ServerConfig config = ServerConfig.useDebugConfig();
             ThreadPoolStrategy strategy = new ThreadPoolStrategy(ThreadPoolStrategy.MULTI_WORKERS, 1, 1);
             config.setThreadPoolStrategy(strategy);
 
-            NettyGatewayServer server = new NettyGatewayServer(config);
+            GatewayServer server = new GatewayServer(config);
             /**
              * init Router by scanning annotation
              */

@@ -1,96 +1,58 @@
 import org.junit.Test;
-import sgw.core.service_discovery.LoadBalancer;
-import sgw.core.service_discovery.RoundRobinLoadBalancer;
+import sgw.core.load_balancer.RoundRobinLoadBalancer;
 
-import static org.junit.Assert.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.junit.Assert.assertEquals;
 
 public class RoundRobinLoadBalancerTest {
 
+    RoundRobinLoadBalancer lb = new RoundRobinLoadBalancer(Arrays.asList("aa", "bb", "cc", "dd"));
+
     @Test
-    public void test() {
-        LoadBalancer<String> lb = new RoundRobinLoadBalancer<>();
-        assertEquals(1, lb.add("aaa"));
-        assertEquals("aaa", lb.next());
-        assertEquals("aaa", lb.next());
-        assertEquals(1, lb.size());
+    public void testNext() {
+        assertEquals("aa", lb.next());
+        assertEquals("bb", lb.next());
+        assertEquals("cc", lb.next());
+        assertEquals("dd", lb.next());
 
-        assertEquals(2, lb.add("bbb"));
-        assertEquals("aaa", lb.next());
-        assertEquals("bbb", lb.next());
-        assertEquals(2, lb.size());
-
-        assertEquals(3, lb.add("ccc"));
-        assertEquals("bbb", lb.next());
-        assertEquals("ccc", lb.next());
-        assertEquals(3, lb.size());
-
-        assertEquals(2, lb.remove("bbb"));
-        assertEquals("aaa", lb.next());
-        assertEquals("ccc", lb.next());
-        assertEquals(2, lb.size());
     }
 
-    // test add() and next()
     @Test
-    public void testConcurrent1() {
-        final LoadBalancer<String> lb = new RoundRobinLoadBalancer<>();
-        final int[] stat = new int[10000];
-        Thread nextThread = new Thread(() -> {
-            while (!Thread.interrupted()) {
-                String item = lb.next();
-                if (item != null)
-                    stat[Integer.valueOf(item)] ++;
-            }
-        });
-        Thread addThread = new Thread(() -> {
-            for (int i = 0; i < 10000; i ++) {
-                lb.add(String.valueOf(i));
-            }
-            nextThread.interrupt();
-        });
+    public void testNextConcurrent() {
+        Map<String, AtomicInteger> map = new HashMap<>();
+        map.put("aa", new AtomicInteger(0));
+        map.put("bb", new AtomicInteger(0));
+        map.put("cc", new AtomicInteger(0));
+        map.put("dd", new AtomicInteger(0));
 
-        try {
-            nextThread.start();
-            addThread.start();
-            nextThread.join();
-            addThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        Runnable p = new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 1; i <= 40000; i ++)
+                    map.get(lb.next()).incrementAndGet();
+            }
+        };
+        Thread[] threads = new Thread[10];
+        for (int i = 0; i < 10; i ++) {
+            threads[i] = new Thread(p);
         }
-    }
-
-    // test remove() and next()
-    @Test
-    public void testConcurrent2() {
-        final LoadBalancer<String> lb = new RoundRobinLoadBalancer<>();
-        for (int i = 0; i < 10000; i ++)
-            lb.add(String.valueOf(i));
-        final int[] stat = new int[10000];
-
-        Thread nextThread = new Thread(() -> {
-            while (!Thread.interrupted()) {
-                String item = lb.next();
-                if (item != null)
-                    stat[Integer.valueOf(item)] ++;
-            }
-        });
-
-        Thread removeThread = new Thread(() -> {
-            for (int i = 0; i < 10000; i ++) {
-                lb.remove(String.valueOf(i));
-            }
-            nextThread.interrupt();
-        });
-
-        try {
-            nextThread.start();
-            removeThread.start();
-            nextThread.join();
-            removeThread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        for (int i = 0; i < 10; i ++) {
+            threads[i].start();
         }
+        try {
+            for (int i = 0; i < 10; i++) {
+                threads[i].join();
+            }
+        } catch (Exception e) {}
+
+        assertEquals(100000, map.get("aa").get());
+        assertEquals(100000, map.get("bb").get());
+        assertEquals(100000, map.get("cc").get());
+        assertEquals(100000, map.get("dd").get());
 
     }
-
 }

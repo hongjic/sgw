@@ -1,16 +1,11 @@
-package sgw.core.service_discovery;
+package sgw.core.load_balancer;
 
 /**
  * A collection of existing objects
  * All methods should be thread-safe
  * @param <T> object type
  */
-public interface LoadBalancer<T> {
-
-    /**
-     * @return use the underlying load balancing strategy to get an object.
-     */
-    T next();
+public interface DynamicLoadBalancer<T> extends LoadBalancer<T> {
 
     /**
      * @param item the new object to be added to the collection
@@ -23,10 +18,5 @@ public interface LoadBalancer<T> {
      * @return the size of collection after remove finishes.
      */
     int remove(T item);
-
-    /**
-     * @return number of objects inside
-     */
-    int size();
 
 }

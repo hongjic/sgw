@@ -43,7 +43,7 @@ public class YamlRouterCompiler extends RouterCompiler {
             String[] strs = api.getHttp().split(" ");
             HttpRequestDef httpDef = new HttpRequestDef(HttpMethod.valueOf(strs[0]), strs[1]);
             ThriftInvokerDef thriftDef = new ThriftInvokerDef(
-                    RpcType.Thrift,
+                    RpcType.thrift,
                     api.getService(),
                     api.getMethod(),
                     api.getClazz(),

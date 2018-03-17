@@ -1,6 +1,7 @@
 package sgw.core.routing;
 
 import io.netty.handler.codec.http.HttpMethod;
+import org.apache.http.annotation.ThreadSafe;
 import sgw.core.http_channel.HttpRequestDef;
 import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.util.CopyOnWriteHashMap;
@@ -9,8 +10,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * thread safe. see {@link CopyOnWriteHashMap} for performance detail.
+ * Only one {@link Router} instance is necessary in a gateway process.
+ *
  */
+@ThreadSafe
 public class Router {
 
     private static final HttpMethod[] METHODS = new HttpMethod[] {
@@ -116,7 +119,6 @@ public class Router {
         for (UriMatcher matcher: mappings.values()) {
             matcher.clear();
         }
-        mappings.clear();
     }
 
     /**
@@ -124,7 +126,7 @@ public class Router {
      * @param map http request --> rpc request mapping
      */
     public void initialize(Map<HttpRequestDef, RpcInvokerDef> map) {
-        mappings.clear();
+        clear();
         putAll(map);
     }
 

@@ -1,10 +1,8 @@
 package sgw.core.filters;
 
-import sgw.core.filters.post_routing.DateHeader;
+import sgw.core.filters.post_routing.RespHeadersFilter;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -23,7 +21,7 @@ public enum FilterMngr {
     FilterMngr() {
         filters[0] = new CopyOnWriteArrayList<>();
         filters[1] = new CopyOnWriteArrayList<>();
-        addFilters(new DateHeader());
+        addFilters(new RespHeadersFilter());
     }
 
     public void addFilters(AbstractFilter... filters) {

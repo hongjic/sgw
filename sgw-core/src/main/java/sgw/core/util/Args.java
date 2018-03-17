@@ -25,4 +25,5 @@ public class Args {
             throw new IllegalArgumentException("Argument {" + name + "} should not be blank.");
         return value;
     }
+
 }

@@ -6,17 +6,9 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import sgw.core.NettyGatewayServerConfig;
-import sgw.core.filters.PostRoutingFiltersHandler;
-import sgw.core.filters.PreRoutingFiltersHandler;
+import sgw.core.ServerConfig;
 import sgw.core.routing.Router;
-import sgw.core.http_channel.thrift.HttpReqToThrift;
-import sgw.core.http_channel.thrift.ThriftToHttpRsp;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
-
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Only created once during server bootstrap.
@@ -29,21 +21,20 @@ import java.util.concurrent.atomic.AtomicLong;
 public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
 
     public static final String HTTP_CODEC = "http_codec";
-    public static final String PRE_FILTER = "pre_filter";
-    public static final String POST_FILTER = "post_filter";
+    public static final String EDGE_HANDLER = "edge_handler";
     public static final String ROUTING = "routing";
     public static final String HTTP_AGGREGATOR = "http_aggregator";
-    public static final String REQUEST_CONVERTOR = "request_convertor";
     public static final String SERVICE_INVOKER = "service_invoker";
     public static final String RESPONSE_CONVERTOR = "response_convertor";
+    public static final String CONVERTOR = "convertor";
 
-    private NettyGatewayServerConfig config;
+    private ServerConfig config;
 
     // router is shared among all channels
     private Router router;
     private RpcInvokerDiscoverer discoverer;
 
-    public HttpChannelInitializer(NettyGatewayServerConfig config) {
+    public HttpChannelInitializer(ServerConfig config) {
         this.config = config;
     }
 
@@ -58,27 +49,27 @@ public class HttpChannelInitializer extends ChannelInitializer<SocketChannel> {
     @Override
     public void initChannel(SocketChannel ch) {
         // initialize context
-        HttpChannelContext httpCtx = new HttpChannelContext();
-        httpCtx.setConfig(config);
-        httpCtx.setRouter(router);
-        httpCtx.setInvokerDiscoverer(discoverer);
-        httpCtx.setHttpChannel(ch);
-        httpCtx.setSendFastMessage(false);
+        HttpChannelContext chanCtx = new HttpChannelContext();
+        chanCtx.setConfig(config);
+        chanCtx.setRouter(router);
+        chanCtx.setInvokerDiscoverer(discoverer);
+        chanCtx.setHttpChannel(ch);
 
         int maxContentLength = config.getMaxHttpContentLength();
         ChannelPipeline p = ch.pipeline();
+        // Handler order MATTERS.
         // codec
         p.addLast(HTTP_CODEC, new HttpServerCodec()); // HttpServerCodec is both inbound and outbound
+        p.addLast(HTTP_AGGREGATOR, new HttpObjectAggregator(maxContentLength)); // inbound
 
-        // channel outbound handlers
-        p.addLast(POST_FILTER, new PostRoutingFiltersHandler(httpCtx)); // filter handler
-        p.addLast(RESPONSE_CONVERTOR, new ThriftToHttpRsp(httpCtx));
+        // edge
+        p.addLast(EDGE_HANDLER, new HttpEdgeHandler(chanCtx)); // duplex
 
         // channel inbound handlers
-        p.addLast(HTTP_AGGREGATOR, new HttpObjectAggregator(maxContentLength));
-        p.addLast(PRE_FILTER, new PreRoutingFiltersHandler(httpCtx)); // filter handler
-        p.addLast(ROUTING, new HttpRoutingHandler(httpCtx));
-        p.addLast(REQUEST_CONVERTOR, new HttpReqToThrift(httpCtx));
-        p.addLast(SERVICE_INVOKER, new ServiceInvokeHandler(httpCtx));
+        p.addLast(ROUTING, new HttpRoutingHandler(chanCtx)); // inbound
+        p.addLast(CONVERTOR, new HttpConvertHandler(chanCtx)); // codec
+//        p.addLast(SERVICE_INVOKER, new ServiceInvokeHandler(chanCtx));
+        p.addLast(SERVICE_INVOKER, new InvokeHandler(chanCtx));
+
     }
 }

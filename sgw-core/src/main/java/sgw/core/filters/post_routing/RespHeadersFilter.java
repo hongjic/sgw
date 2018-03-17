@@ -3,14 +3,15 @@ package sgw.core.filters.post_routing;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import sgw.core.filters.AbstractFilter;
-import sgw.core.http_channel.HttpChannelContext;
+import sgw.core.http_channel.HttpRequestContext;
+import sgw.core.util.FastMessage;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-public class DateHeader extends AbstractFilter {
+public class RespHeadersFilter extends AbstractFilter {
 
     private static final String pattern = "EEE, dd MMM yyyy HH:mm:ss zzz";
     private static final SimpleDateFormat format = new SimpleDateFormat(pattern, Locale.US);
@@ -30,14 +31,15 @@ public class DateHeader extends AbstractFilter {
     }
 
     @Override
-    public boolean shouldFilter(HttpChannelContext ctx) {
+    public boolean shouldFilter(HttpRequestContext ctx) {
         return true;
     }
 
     @Override
-    public Object run(HttpChannelContext ctx) {
+    public FastMessage run(HttpRequestContext ctx) {
         FullHttpResponse response = ctx.getHttpResponse();
         response.headers().set(HttpHeaderNames.DATE, getCurrentDate());
+        response.headers().set(HttpHeaderNames.CONTENT_LENGTH, response.content().readableBytes());
         return null;
     }
 

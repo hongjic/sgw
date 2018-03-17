@@ -1,10 +1,7 @@
 package sgw.core.service_discovery;
 
-import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sgw.core.service_channel.RpcInvoker;
-import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_discovery.zookeeper.ZKServiceDiscoverer;
 
 import java.io.File;
@@ -22,7 +19,7 @@ public interface RpcInvokerDiscoverer {
 
     List<String> getAllServices();
 
-    RpcInvoker find(RpcInvokerDef invokerDef) throws Exception;
+    ServiceNode find(String serviceName) throws Exception;
 
     void start() throws Exception;
 

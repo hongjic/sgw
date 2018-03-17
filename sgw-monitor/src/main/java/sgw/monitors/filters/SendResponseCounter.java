@@ -4,6 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.filters.AbstractFilter;
 import sgw.core.http_channel.HttpChannelContext;
+import sgw.core.http_channel.HttpRequestContext;
+import sgw.core.util.FastMessage;
 import sgw.monitors.GatewayMonitor;
 import sgw.monitors.NumCounter;
 
@@ -22,12 +24,12 @@ public class SendResponseCounter extends AbstractFilter{
     }
 
     @Override
-    public boolean shouldFilter(HttpChannelContext httpCtx) {
+    public boolean shouldFilter(HttpRequestContext httpCtx) {
         return true;
     }
 
     @Override
-    public Object run(HttpChannelContext httpCtx) {
+    public FastMessage run(HttpRequestContext httpCtx) {
         GatewayMonitor.getInstance().getCounter(GatewayMonitor.SND_RES, NumCounter.class).increase();
 //        long id = (long) httpCtx.get("request_id");
 //        long now = System.currentTimeMillis();

@@ -1,50 +1,31 @@
 package sgw.core.service_channel;
 
-import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.EventLoopGroup;
 import sgw.core.http_channel.HttpChannelContext;
-import sgw.core.http_channel.ServiceInvokeHandler;
+import sgw.core.http_channel.HttpRequestContext;
+import sgw.core.service_channel.thrift.ThriftInvoker;
+import sgw.core.service_discovery.ServiceNode;
+import sgw.core.util.ChannelOrderedMessage;
 
 /**
  * has to be thread-safe
  */
-public interface RpcInvoker {
+public interface RpcInvoker<I extends ChannelOrderedMessage, O extends ChannelOrderedMessage> {
 
     enum InvokerState {
-        INACTIVE, CONNECTING, CONNECT_FAIL, ACTIVE, INVOKED, SUCCESS, TIMEOUT, FAIL
+        INACTIVE, CONNECTING, CONNECT_FAIL, ACTIVE, INVOKED, INVOKE_FAIL, SUCCESS, TIMEOUT, FAIL
     }
 
     /**
-     * @param group The eventloop group that the rpc channel will use.
-     * @return self
+     * Send rpc message asynchronously to the rpc channel
      */
-    RpcInvoker register(EventLoopGroup group, HttpChannelContext httpCtx);
-
-    /**
-     * Connect to remote service
-     * This method will create the actual rpc channel
-     */
-    ChannelFuture connectAsync();
-
-    /**
-     * Send rpc request to remote service.
-     */
-    ChannelFuture invokeAsync(Object param);
+    ChannelFuture invokeAsync(I param);
 
     /**
      * This method is invoked by the rpc channel when the request has been completed or failed.
      * Telling the http channel to handle the invokeResult put in http channel context.
      */
-    void handleResult(Object reuslt, RpcChannelContext rpcCtx);
-
-    /**
-     * Bind the http channel to RpcInvoker
-     * @param channel http channel to bind
-     */
-    void setInboundChannel(Channel channel);
-
-    Channel getRpcChannel();
+    void handleResult(O result);
 
     /**
      * Return the invoker state.
@@ -53,5 +34,15 @@ public interface RpcInvoker {
     InvokerState getState();
 
     void setState(InvokerState state);
+
+    static RpcInvoker create(RpcInvokerDef invokerDef,
+                             ServiceNode node,
+                             HttpChannelContext chanCtx,
+                             HttpRequestContext reqCtx) {
+        switch (invokerDef.getProtocol()) {
+            case thrift: return new ThriftInvoker(invokerDef, node, chanCtx, reqCtx);
+            default: return null;
+        }
+    }
 
 }

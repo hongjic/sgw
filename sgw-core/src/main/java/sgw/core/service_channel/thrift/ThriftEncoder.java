@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.service_channel.thrift.transport.ByteBufWriteTransport;
 
-public class ThriftEncoder extends MessageToByteEncoder<ThriftCallWrapper> {
+public class ThriftEncoder extends MessageToByteEncoder<ThriftOrderedRequest> {
 
     private final Logger logger = LoggerFactory.getLogger(ThriftEncoder.class);
 
@@ -20,21 +20,21 @@ public class ThriftEncoder extends MessageToByteEncoder<ThriftCallWrapper> {
     private static final int MAX_BUFFER_SIZE = 1024*1024*1024;
     private final byte[] i32buf = new byte[4];
 
-    private ThriftChannelContext thriftCtx;
+    private ThriftChannelContext thriftChanCtx;
 
-
-    public ThriftEncoder(ThriftChannelContext thriftCtx) {
-        this.thriftCtx = thriftCtx;
+    public ThriftEncoder(ThriftChannelContext thriftChanCtx) {
+        this.thriftChanCtx = thriftChanCtx;
     }
 
     @Override
-    public void encode(ChannelHandlerContext ctx, ThriftCallWrapper wrapper, ByteBuf out) throws TException {
-        logger.debug("Request {}: Message sent to Thrift channel, start encoding thrift call...",
-                thriftCtx.getHttpRequestId());
-        thriftCtx.setCallWrapper(wrapper);
-        writeFrameBuffer(out, wrapper);
+    public void encode(ChannelHandlerContext ctx, ThriftOrderedRequest request, ByteBuf out) throws TException {
+
+        long tChReqId = request.channelMessageId();
+        ThriftRequestContext treqCtx = thriftChanCtx.getRequestContext(tChReqId);
+        logger.debug("Request {}: Message sent to thrift channel, start encoding thrift call...",
+                treqCtx.getHttpGlRequestId());
+        writeFrameBuffer(out, request);
         writeSizeBuffer(out);
-        thriftCtx.setRpcSendTime(System.currentTimeMillis());
     }
 
     private void writeSizeBuffer(ByteBuf buf) {
@@ -44,10 +44,10 @@ public class ThriftEncoder extends MessageToByteEncoder<ThriftCallWrapper> {
         buf.setBytes(0, i32buf);
     }
 
-    private void writeFrameBuffer(ByteBuf buf, ThriftCallWrapper wrapper) throws TException {
-        TBase args = wrapper.getArgs();
-        TMessage message = wrapper.getMessage();
-        String serviceName = wrapper.getServiceName();
+    private void writeFrameBuffer(ByteBuf buf, ThriftOrderedRequest request) throws TException {
+        TBase args = request.getArgs();
+        TMessage message = new TMessage(request.getMethodName(), TMessageType.CALL, (int) request.channelMessageId());
+        String serviceName = request.getServiceName();
 
         // Leave space to write frame size. Use the same Bytebuf to avoid data copy.
         buf.setIndex(0, 4);
@@ -62,7 +62,7 @@ public class ThriftEncoder extends MessageToByteEncoder<ThriftCallWrapper> {
     }
 
     @Override
-    protected ByteBuf allocateBuffer(ChannelHandlerContext ctx, @SuppressWarnings("unused") ThriftCallWrapper msg,
+    protected ByteBuf allocateBuffer(ChannelHandlerContext ctx, @SuppressWarnings("unused") ThriftOrderedRequest msg,
                                        boolean preferDirect) {
         if (preferDirect) {
             return ctx.alloc().ioBuffer(INITIAL_BUFFER_SIZE, MAX_BUFFER_SIZE);

@@ -6,14 +6,11 @@ import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.service_channel.RpcType;
-import sgw.core.service_channel.RpcInvoker;
-import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
-import sgw.core.service_channel.thrift.ThriftInvoker;
+import sgw.core.service_discovery.ServiceNode;
 import sgw.core.service_discovery.ServiceUnavailableException;
 
 import java.io.FileInputStream;
-import java.net.SocketAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Properties;
@@ -49,6 +46,8 @@ public class ZKServiceDiscoverer implements RpcInvokerDiscoverer {
     public void close() {
         for (ServiceProvider sp: serviceProviderMap.values()) {
             sp.stopListening();
+            // all service node close connection
+            // TODO
         }
         ZkClient.close();
         started = false;
@@ -60,27 +59,14 @@ public class ZKServiceDiscoverer implements RpcInvokerDiscoverer {
     }
 
     @Override
-    public RpcInvoker find(RpcInvokerDef invokerDef) throws ServiceUnavailableException {
+    public ServiceNode find(String serviceName) throws ServiceUnavailableException {
         if (!started)
             throw new IllegalStateException("Discoverer is not started.");
-        RpcType rpcProtocol = invokerDef.getProtocol();
-
-        switch (rpcProtocol) {
-            case Thrift: {
-                String serviceName = invokerDef.getServiceName();
-                ServiceProvider provider = serviceProviderMap.get(serviceName);
-                ServiceNode node = provider.next();
-                if (node != null) {
-                    SocketAddress remoteAddress = node.getRemoteAddress();
-                    return new ThriftInvoker(invokerDef, remoteAddress);
-                }
-                else {
-                    throw new ServiceUnavailableException(serviceName);
-                }
-
-            }
-            default: return null;
-        }
+        ServiceProvider provider = serviceProviderMap.get(serviceName);
+        ServiceNode node = provider.next();
+        if (node == null)
+            throw new ServiceUnavailableException(serviceName);
+        return node;
     }
 
     public static class Builder {

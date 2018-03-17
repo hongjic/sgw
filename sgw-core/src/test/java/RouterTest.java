@@ -6,7 +6,6 @@ import sgw.core.routing.UndefinedHttpRequestException;
 import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_channel.RpcType;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,19 +40,19 @@ public class RouterTest {
     public RouterTest() {
         map = new HashMap<>();
         map.put(reqDef1, new RpcInvokerDef(
-                RpcType.Thrift,
+                RpcType.thrift,
                 "service1", "method1",
                 null));
         map.put(reqDef2, new RpcInvokerDef(
-                RpcType.Thrift,
+                RpcType.thrift,
                 "service2", "method1",
                 null));
         map.put(reqDef3, new RpcInvokerDef(
-                RpcType.Thrift,
+                RpcType.thrift,
                 "service1", "method2",
                 null));
         map.put(reqDef4, new RpcInvokerDef(
-                RpcType.Thrift,
+                RpcType.thrift,
                 "service1", "method3",
                 null));
     }
@@ -98,7 +97,7 @@ public class RouterTest {
 
         // overrride
         router.put(reqDef5, new RpcInvokerDef(
-                RpcType.Thrift,
+                RpcType.thrift,
                 "service1", "method4",
                 null));
         try {
@@ -115,7 +114,7 @@ public class RouterTest {
         try {
             RpcInvokerDef invokerDef;
             invokerDef = router.put(reqDef1, new RpcInvokerDef(
-                    RpcType.Thrift,
+                    RpcType.thrift,
                     "service9", "method9",
                     null));
             checkInvokerDef("service1", "method1", invokerDef);
@@ -133,11 +132,11 @@ public class RouterTest {
         try {
             Map<HttpRequestDef, RpcInvokerDef> m = new HashMap<>();
             m.put(reqDef1, new RpcInvokerDef(
-                    RpcType.Thrift,
+                    RpcType.thrift,
                     "service9", "method9",
                     null));
             m.put(reqDef2, new RpcInvokerDef(
-                    RpcType.Thrift,
+                    RpcType.thrift,
                     "service2", "method2",
                     null));
             router.putAll(m);

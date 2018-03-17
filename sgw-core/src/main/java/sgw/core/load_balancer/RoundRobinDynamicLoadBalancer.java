@@ -1,20 +1,24 @@
-package sgw.core.service_discovery;
+package sgw.core.load_balancer;
+
+import org.apache.http.annotation.ThreadSafe;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * All methods should be thread-safe
  */
-public class RoundRobinLoadBalancer<T> implements LoadBalancer<T> {
+@ThreadSafe
+public class RoundRobinDynamicLoadBalancer<T> implements DynamicLoadBalancer<T> {
 
     private final AtomicInteger count = new AtomicInteger(0);
     private final AtomicInteger size = new AtomicInteger(0);
-    private CopyOnWriteArrayList<T> itemList;
-    private HashMap<T, Integer> itemMap;
+    private final CopyOnWriteArrayList<T> itemList;
+    private final HashMap<T, Integer> itemMap;
 
-    public RoundRobinLoadBalancer() {
+    public RoundRobinDynamicLoadBalancer() {
         itemList = new CopyOnWriteArrayList<>();
         itemMap = new HashMap<>();
     }
@@ -62,5 +66,10 @@ public class RoundRobinLoadBalancer<T> implements LoadBalancer<T> {
         itemList.remove(size);
         itemMap.put(endItem, index);
         return size;
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return itemList.iterator();
     }
 }

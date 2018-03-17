@@ -7,8 +7,10 @@ import org.apache.curator.framework.recipes.cache.TreeCache;
 import org.apache.curator.framework.recipes.cache.TreeCacheEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sgw.core.service_discovery.LoadBalancer;
-import sgw.core.service_discovery.RoundRobinLoadBalancer;
+import sgw.core.load_balancer.DynamicLoadBalancer;
+import sgw.core.load_balancer.RoundRobinDynamicLoadBalancer;
+import sgw.core.service_channel.RpcType;
+import sgw.core.service_discovery.ServiceNode;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -21,14 +23,19 @@ public class ServiceProvider {
     private String ZKPrefixPath;
     private CuratorFramework client;
     private TreeCache ZKCache;
-    private final LoadBalancer<ServiceNode> loadBalancer;
+    private final DynamicLoadBalancer<ServiceNode> loadBalancer;
 
     public ServiceProvider(String serviceRegName, CuratorFramework ZkClient) {
         serviceName = serviceRegName;
-        ZKPrefixPath = "/" + serviceName + "/servers";
         client = ZkClient;
-        // use RoundRobinLoadBalancer as default
-        loadBalancer = new RoundRobinLoadBalancer<>();
+        ZKPrefixPath = prefixPath();
+        // use RoundRobinDynamicLoadBalancer as default
+        loadBalancer = new RoundRobinDynamicLoadBalancer<>();
+    }
+
+    // subclasses may override this method to customize zookeeper path.
+    protected String prefixPath() {
+        return "/" + serviceName + "/servers";
     }
 
     public void startListening() throws Exception {
@@ -47,26 +54,26 @@ public class ServiceProvider {
         ZKCache.start();
     }
 
-    private void nodeAddedCallback(TreeCacheEvent event, LoadBalancer<ServiceNode> lb) throws Exception {
+    private void nodeAddedCallback(TreeCacheEvent event, DynamicLoadBalancer<ServiceNode> lb) throws Exception {
         ChildData childData = event.getData();
         String path = childData.getPath();
         if (path.length() > ZKPrefixPath.length()) {
             // new instance added
             String nodeName = path.substring(ZKPrefixPath.length());
-            ServiceNode newNode = new ServiceNodeImpl(nodeName);
+            ServiceNode newNode = new ServiceNodeImpl(serviceName, nodeName);
             newNode.loadNodeData(childData.getData());
             lb.add(newNode);
             logger.info("New service node added to service: \"{}\".", serviceName);
         }
     }
 
-    private void nodeRemovedCallBack(TreeCacheEvent event, LoadBalancer<ServiceNode> lb) throws Exception {
+    private void nodeRemovedCallBack(TreeCacheEvent event, DynamicLoadBalancer<ServiceNode> lb) throws Exception {
         ChildData childData = event.getData();
         String path = childData.getPath();
         if (path.length() > ZKPrefixPath.length()) {
             // instance removed
             String nodeName = path.substring(ZKPrefixPath.length());
-            ServiceNode node = new ServiceNodeImpl(nodeName);
+            ServiceNode node = new ServiceNodeImpl(serviceName, nodeName);
             lb.remove(node);
             logger.info("Service node removed from service: \"{}\", {} left.", serviceName, lb.size());
         }
@@ -82,23 +89,35 @@ public class ServiceProvider {
 
     public static class ServiceNodeImpl implements ServiceNode {
 
-        /**
-         * Node name should be unique inside a serivce.
-         * Correctness of `hashCode()` and `equals()` depend on this.
-         */
-        private String nodeName;
+        private String serviceName; // service name in zookeeper
+        private String name; // true name = serviceName + '@' + nodeName;
+        private RpcType protocol;
 
         private String ip;
         private int port;
 
-        public ServiceNodeImpl(String nodeName) {
-            this.nodeName = nodeName;
+        public ServiceNodeImpl(String serviceName, String nodeName) {
+            this.serviceName = serviceName;
+            this.name = serviceName + '@' + nodeName;
         }
 
         @Override
-        public SocketAddress getRemoteAddress() {
+        public SocketAddress remoteAddress() {
             return new InetSocketAddress(ip, port);
         }
+
+        @Override
+        public String serviceName() {
+            return serviceName;
+        }
+
+        @Override
+        public String nodeName() {
+            return name;
+        }
+
+        @Override
+        public RpcType protocol() { return protocol; }
 
         @Override
         public void loadNodeData(byte[] data) throws Exception {
@@ -106,11 +125,12 @@ public class ServiceProvider {
             JSONObject obj = JSONObject.parseObject(st);
             ip = obj.getString("ip");
             port = obj.getInteger("port");
+            protocol = RpcType.valueOf(obj.getString("protocol"));
         }
 
         @Override
         public int hashCode() {
-            return nodeName.hashCode();
+            return name.hashCode();
         }
 
         @Override
@@ -118,7 +138,7 @@ public class ServiceProvider {
             if (!(o instanceof ServiceNodeImpl))
                 return false;
             ServiceNodeImpl other = (ServiceNodeImpl) o;
-            return other.nodeName.equals(nodeName);
+            return other.name.equals(name) && other.ip.equals(ip) && other.port == port;
         }
     }
 

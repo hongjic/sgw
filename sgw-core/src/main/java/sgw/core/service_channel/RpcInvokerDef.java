@@ -2,6 +2,7 @@ package sgw.core.service_channel;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sgw.core.service_channel.thrift.ThriftInvokerDef;
 
 public class RpcInvokerDef {
 

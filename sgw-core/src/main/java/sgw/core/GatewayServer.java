@@ -1,6 +1,5 @@
 package sgw.core;
 
-import io.netty.channel.WriteBufferWaterMark;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.http_channel.HttpChannelInitializer;
@@ -14,9 +13,9 @@ import sgw.core.routing.Router;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
 import sgw.core.util.Args;
 
-public class NettyGatewayServer {
+public class GatewayServer {
 
-    private final Logger logger = LoggerFactory.getLogger(NettyGatewayServer.class);
+    private final Logger logger = LoggerFactory.getLogger(GatewayServer.class);
 
     private NioEventLoopGroup acceptor;
     private NioEventLoopGroup workerGroup;
@@ -26,13 +25,13 @@ public class NettyGatewayServer {
     private HttpChannelInitializer httpChannelInitializer;
     private Router router;
     private RpcInvokerDiscoverer discoverer;
-    private NettyGatewayServerConfig config;
+    private ServerConfig config;
 
     /**
      *
      * @param config configuration for thread pool strategy.
      */
-    public NettyGatewayServer(NettyGatewayServerConfig config) throws Exception {
+    public GatewayServer(ServerConfig config) throws Exception {
         this.config = config;
         serverPort = config.getPort();
         ThreadPoolStrategy strategy = config.getThreadPoolStrategy();

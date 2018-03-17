@@ -2,8 +2,7 @@ package sgw.core.filters;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sgw.core.http_channel.HttpChannelContext;
-import sgw.core.filters.AbstractFilter.FilterException;
+import sgw.core.http_channel.HttpRequestContext;
 import sgw.core.util.FastMessage;
 
 import java.util.List;
@@ -17,29 +16,37 @@ public enum FilterProcessor {
 
     private final Logger logger = LoggerFactory.getLogger(FilterProcessor.class);
 
-    public void preRouting(HttpChannelContext httpCtx) throws FilterException {
-        runFilters("pre", httpCtx);
+    public void preRouting(HttpRequestContext reqCtx) throws FilterException {
+        runFilters("pre", reqCtx);
     }
 
-    public void postRouting(HttpChannelContext httpCtx) throws FilterException {
-        runFilters("post", httpCtx);
+    public void postRouting(HttpRequestContext reqCtx) throws FilterException {
+        runFilters("post", reqCtx);
     }
 
-    public void runFilters(String filterType, HttpChannelContext httpCtx) throws FilterException {
+    /**
+     * Throws a {@link FilterException} if filter did not pass.
+     *
+     * @param filterType "post", "pre", "routing"
+     * @param reqCtx http request context
+     * @throws FilterException if filter didn't pass
+     */
+    public void runFilters(String filterType, HttpRequestContext reqCtx) throws FilterException {
         List<AbstractFilter> list = FilterMngr.Instance.getFiltersByType(filterType);
         if (list != null) {
             for (AbstractFilter filter: list) {
-                FilterResult result = filter.runFilter(httpCtx);
+                FastMessage result;
+                try {
+                    result = filter.run(reqCtx);
+                } catch (Exception e) {
+                    throw new FilterException(new FastMessage(reqCtx.getChannelRequestId(), e));
+                }
 
-                logger.debug("Filter {}: {}", filter.getClass().getName(), result.toString());
-                if (result.getStatus() == FilterExecutionStatus.FAILED) {
-                    Exception e = result.getException();
-                    if (!(e instanceof FilterException))
-                        e = new FilterException(e);
-                    httpCtx.setSendFastMessage(true);
-                    httpCtx.setFastMessage(new FastMessage(e));
-
-                    throw (FilterException) e;
+                if (result == null)
+                    logger.debug("Filter {}: passed.", filter.getClass().getName());
+                else {
+                    logger.debug("Filter {}: send back status {}", filter.getClass().getName(), result.getStatus().code());
+                    throw new FilterException(result);
                 }
             }
         }

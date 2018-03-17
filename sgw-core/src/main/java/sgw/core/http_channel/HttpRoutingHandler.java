@@ -5,19 +5,20 @@ import io.netty.handler.codec.http.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.data_convertor.*;
+import sgw.core.http_channel.util.ChannelOrderedHttpRequest;
 import sgw.core.routing.UndefinedHttpRequestException;
+import sgw.core.service_channel.RpcType;
+import sgw.core.service_discovery.ServiceNode;
 import sgw.core.util.FastMessage;
 import sgw.core.routing.Router;
 import sgw.core.service_channel.RpcInvoker;
 import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_discovery.RpcInvokerDiscoverer;
 import sgw.core.service_discovery.ServiceUnavailableException;
-import sgw.core.util.RequestCounter;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * {@link HttpRoutingHandler} first finds {@link RpcInvokerDef} according to the
@@ -28,26 +29,27 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
 
     private final Logger logger = LoggerFactory.getLogger(HttpRoutingHandler.class);
 
-    private HttpChannelContext httpCtx;
-    private final AtomicLong count = new AtomicLong(0);
+    private HttpChannelContext chanCtx;
+    private Router router;
+    private RpcInvokerDiscoverer invokerDiscoverer;
+    private long channelRequestId;
 
-    public HttpRoutingHandler(HttpChannelContext httpCtx) {
-        this.httpCtx = httpCtx;
+    public HttpRoutingHandler(HttpChannelContext chanCtx) {
+        this.chanCtx = chanCtx;
+        this.router = chanCtx.getRouter();
+        this.invokerDiscoverer = chanCtx.getInvokerDiscoverer();
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        count.incrementAndGet();
-        httpCtx.put("routing_handler_start", System.currentTimeMillis());
-        httpCtx.setRequestId(RequestCounter.Instance.incrementAndGet());
-        Router router = httpCtx.getRouter();
-        // init service detector
-        RpcInvokerDiscoverer invokerDetector = httpCtx.getInvokerDiscoverer();
-
         /**
-         * msg type: {@link FullHttpRequest}
+         * msg: {@link sgw.core.http_channel.util.ChannelOrderedHttpRequest}
          */
-        HttpRequest request = (HttpRequest) msg;
+        assert (msg instanceof ChannelOrderedHttpRequest);
+        ChannelOrderedHttpRequest request = (ChannelOrderedHttpRequest) msg;
+        channelRequestId = request.channelMessageId();
+
+        HttpRequestContext reqCtx = chanCtx.getRequestContext(channelRequestId);
         HttpMethod method = request.method();
         URI uri;
         try {
@@ -58,7 +60,7 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
             return;
         }
 
-        logger.debug("Request {}: Http request received: {} {}", httpCtx.getRequestId(), method, uri.toString());
+        logger.debug("Request {}: Http request received: {} {}", reqCtx.getGlobalRequestId(), method, uri.toString());
 
         // rpc invoker can be determined as soon as we get HttpRequestDef
         // no need to wait for the full request body arrives.
@@ -66,20 +68,21 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
         Map<String, String> pathParams = httpRequestDef.getParams();
 
         RpcInvokerDef invokerDef = router.get(httpRequestDef);
-        RpcInvoker invoker = invokerDetector.find(invokerDef);
-        logger.debug("Request {}: remote address {}", httpCtx.getRequestId(), invoker.toString());
+        ServiceNode node = invokerDiscoverer.find(invokerDef.getServiceName());
+        RpcInvoker invoker = RpcInvoker.create(invokerDef, node, chanCtx, reqCtx);
+        logger.debug("Request {}: remote address {}", reqCtx.getGlobalRequestId(), invoker.toString());
 
         ConvertorInfo cinfo = Convertors.Cache.getConvertorInfo(invokerDef.getHttpConvertorClazzName());
         FullHttpRequestParser reqPar = new RequestParserImpl(cinfo, pathParams);
         FullHttpResponseGenerator resGen = new ResponseGeneratorImpl(cinfo);
 
-        httpCtx.setInvokerDef(invokerDef);
-        httpCtx.setFullHttpRequestParser(reqPar);
-        httpCtx.setFullHttpResponseGenerator(resGen);
-        httpCtx.setInvoker(invoker);
+        reqCtx.setInvokerDef(invokerDef);
+        reqCtx.setHttpRequestParser(reqPar);
+        reqCtx.setHttpResponseGenerator(resGen);
+        reqCtx.setInvoker(invoker);
 
         /**
-         * Send to {@link sgw.core.http_channel.thrift.HttpReqToThrift} for default
+         * Send the channel_request_id to {@link sgw.core.http_channel.thrift.HttpReqToThrift} for default
          * To support other rpc protocols, use {@link RpcInvokerDef#getProtocol()} to check protocol and
          * replace `REQUEST_CONVERTOR` and `RESPONSE_CONVERTOR` handler.
          */
@@ -90,13 +93,13 @@ public class HttpRoutingHandler extends ChannelInboundHandlerAdapter{
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         if (cause instanceof ServiceUnavailableException) {
             cause.printStackTrace();
-            FastMessage fm = new FastMessage((ServiceUnavailableException) cause);
-            fm.send(ctx, httpCtx).addListener(ChannelFutureListener.CLOSE);
+            FastMessage fm = new FastMessage(channelRequestId, (ServiceUnavailableException) cause);
+            fm.send(ctx.channel(), chanCtx.getRequestContext(channelRequestId));
         }
         else if (cause instanceof UndefinedHttpRequestException) {
             cause.printStackTrace();
-            FastMessage fm = new FastMessage((UndefinedHttpRequestException) cause);
-            fm.send(ctx, httpCtx).addListener(ChannelFutureListener.CLOSE);
+            FastMessage fm = new FastMessage(channelRequestId, (UndefinedHttpRequestException) cause);
+            fm.send(ctx.channel(), chanCtx.getRequestContext(channelRequestId));
         }
         else {
             ctx.fireExceptionCaught(cause);

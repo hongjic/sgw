@@ -40,7 +40,7 @@ public final class ThriftInvokerDef extends RpcInvokerDef {
                 argsClazz = Class.forName(argsClazzName).asSubclass(TBase.class);
 
             } catch (ClassNotFoundException e) {
-                logger.error("Thrift class named as {} can not be found.", argsClazzName);
+                logger.error("thrift class named as {} can not be found.", argsClazzName);
                 throw e;
             }
         }
@@ -52,7 +52,7 @@ public final class ThriftInvokerDef extends RpcInvokerDef {
             try {
                 resultClazz = Class.forName(resultClazzName).asSubclass(TBase.class);
             } catch (ClassNotFoundException e) {
-                logger.error("Thrift class named as {} can not be found.", resultClazzName);
+                logger.error("thrift class named as {} can not be found.", resultClazzName);
                 throw e;
             }
         }

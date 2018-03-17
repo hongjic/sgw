@@ -2,9 +2,11 @@ package sgw.core.util;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-public enum RequestCounter {
+public class RequestCounter {
 
-    Instance;
+    public static final RequestCounter Instance = new RequestCounter();
+
+    RequestCounter() {}
 
     private AtomicLong counter = new AtomicLong(0);
 

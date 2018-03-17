@@ -10,7 +10,6 @@ import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sgw.core.service_channel.RpcInvokerDef;
 import sgw.core.service_channel.thrift.transport.ByteBufReadTransport;
 
 import java.util.List;
@@ -22,26 +21,23 @@ public class ThriftDecoder extends ByteToMessageDecoder {
     private final byte[] i32buf = new byte[4];
     private int frameSize;
     private boolean sizeDecoded;
-    private ThriftChannelContext thriftCtx;
+    private ThriftChannelContext chanCtx;
 
-    public ThriftDecoder(ThriftChannelContext thriftCtx) {
+    public ThriftDecoder(ThriftChannelContext chanCtx) {
         sizeDecoded = false;
-        this.thriftCtx = thriftCtx;
+        this.chanCtx = chanCtx;
     }
 
     @Override
     public void decode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out) throws Exception {
-        thriftCtx.setRpcRecvTime(System.currentTimeMillis());
-        logger.debug("Request {}: Received Thrift response, start decoding Thrift response.",
-                thriftCtx.getHttpRequestId());
         if (!sizeDecoded) {
             tryDecodeFrameSize(buf);
         }
 
         if (sizeDecoded && buf.readableBytes() >= frameSize) {
-            ThriftCallWrapper wrapper = thriftCtx.getCallWrapper();
-            decodeFrame(wrapper, buf);
-            out.add(wrapper);
+            ThriftOrderedResponse response = decodeFrame(buf);
+            sizeDecoded = false;
+            out.add(response);
         }
     }
 
@@ -54,23 +50,30 @@ public class ThriftDecoder extends ByteToMessageDecoder {
         }
     }
 
-    private void decodeFrame(ThriftCallWrapper wrapper, ByteBuf buf) throws Exception {
-        String serviceName = wrapper.getServiceName();
+    private ThriftOrderedResponse decodeFrame(ByteBuf buf) throws Exception {
 
         TTransport transport = new ByteBufReadTransport(buf);
-        TProtocol basicProtocol = new TCompactProtocol.Factory().getProtocol(transport);
-        TProtocol protocol = new TMultiplexedProtocol(basicProtocol, serviceName);
+        TProtocol protocol = new TCompactProtocol.Factory().getProtocol(transport);
 
-        TBase result = wrapper.getResult();
         TMessage msg = protocol.readMessageBegin();
+        ThriftRequestContext tReqCtx = chanCtx.getRequestContext(msg.seqid);
+        logger.debug("Request {}: Received thrift suresponse, start decoding thrift response.",
+                tReqCtx.getHttpGlRequestId());
         if (msg.type == TMessageType.EXCEPTION) {
             TApplicationException x = new TApplicationException();
             x.read(protocol);
             protocol.readMessageEnd();
             throw x;
         }
+        ThriftInvokerDef invokerDef = (ThriftInvokerDef) tReqCtx.getRpcInvokerDef();
+        TBase result = invokerDef.getThriftResultClazz().newInstance();
         result.read(protocol);
         protocol.readMessageEnd();
+
+        ThriftOrderedResponse response = new ThriftOrderedResponse();
+        response.setResult(result);
+        response.setChannelRequestId(msg.seqid);
+        return response;
     }
 
     @Override

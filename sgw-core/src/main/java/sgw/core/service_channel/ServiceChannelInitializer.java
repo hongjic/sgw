@@ -2,9 +2,10 @@ package sgw.core.service_channel;
 
 import io.netty.channel.*;
 import io.netty.channel.socket.SocketChannel;
-import sgw.core.http_channel.HttpChannelContext;
+import io.netty.handler.codec.redis.RedisEncoder;
 import sgw.core.http_channel.HttpChannelInitializer;
 import sgw.core.service_channel.thrift.ThriftChannelContext;
+import sgw.core.service_channel.thrift.ThriftRequestContext;
 import sgw.core.service_channel.thrift.ThriftDecoder;
 import sgw.core.service_channel.thrift.ThriftEncoder;
 
@@ -16,38 +17,28 @@ import sgw.core.service_channel.thrift.ThriftEncoder;
  */
 public class ServiceChannelInitializer extends ChannelInitializer<SocketChannel> {
 
-    private RpcInvoker invoker;
-    private RpcInvokerDef invokerDef;
-    private long httpRequestId;
+    private RpcType protocol;
 
-    public ServiceChannelInitializer(RpcInvokerDef invokerDef, RpcInvoker invoker, long httpRequestId) {
-        this.invokerDef = invokerDef;
-        this.invoker = invoker;
-        this.httpRequestId = httpRequestId;
+    public ServiceChannelInitializer(RpcType protocol) {
+        this.protocol = protocol;
     }
 
     @Override
     public void initChannel(SocketChannel channel) {
         ChannelPipeline pipeline = channel.pipeline();
-        RpcType protocol = invokerDef.getProtocol();
-
         switch (protocol) {
-            case Thrift: {
-                ThriftChannelContext thriftCtx = new ThriftChannelContext();
-                thriftCtx.setHttpRequestId(httpRequestId);
-                thriftCtx.setRpcInvoker(invoker);
-                thriftCtx.setRpcInvokerDef(invokerDef);
+            case thrift: {
+                ThriftChannelContext thriftChanCtx = new ThriftChannelContext();
 
                 // outbound handlers: encode and send request
-                pipeline.addLast("thriftEncoder", new ThriftEncoder(thriftCtx));
+                pipeline.addLast("thriftEncoder", new ThriftEncoder(thriftChanCtx));
 
                 // inbound handlers: receive and decode response
-                pipeline.addLast("thriftDecoder", new ThriftDecoder(thriftCtx));
+                pipeline.addLast("thriftDecoder", new ThriftDecoder(thriftChanCtx));
                 /**
-                 * Send the generated http response back to the http channel.
-                 * Probably its the always the same despite the rpc protocol we use.
+                 * receive and send message from and back to http channel.
                  */
-                pipeline.addLast("final", new RpcFinalHandler(thriftCtx));
+                pipeline.addLast("server", new ServiceHandler(thriftChanCtx));
                 break;
             }
             default:
