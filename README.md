@@ -1,12 +1,13 @@
 # SGW
 SGW is a simple non-blocking micro-service gateway built upon Netty, it stands between different types of http clients and all micro-service backends (mostly using faster RPC protocols).
 
-The main purpose of this project is to build a protocol conversion and request dispatching layer, and aims to handle large throughput (which results in using Netty as the base framework). 
+The main purpose of this project is to build a protocol transition and request dispatching layer, and aims to handle large throughput (which results in using Netty as the base framework).
 
 Other features include:
 
 * Service discovery/load balancing
-* Filters
+* Pooled connections
+* Zuul style Filters
 * Spring style router configuration
 
 [中文文档](./README_CHN.md)
