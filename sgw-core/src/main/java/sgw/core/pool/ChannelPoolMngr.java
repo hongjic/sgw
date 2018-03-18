@@ -28,18 +28,22 @@ public enum ChannelPoolMngr {
         if (poolMap.containsKey(node))
             return poolMap.get(node);
         else {
-            SocketAddress address = node.remoteAddress();
-            ServerConfig config = ServerConfig.config();
-            int maxChannels = config.getMaxChannelPerChannelPool();
-            EventLoop executor = config.getThreadPoolStrategy().getBackendGroup().next();
-            ChannelPool pool = new MultiplexedChannelPool(
-                    address,
-                    maxChannels,
-                    executor,
-                    new ServiceChannelInitializer(node.protocol())
-            );
-            poolMap.put(node, pool);
-            return pool;
+            synchronized (this) {
+                if (poolMap.containsKey(node))
+                    return poolMap.get(node);
+                SocketAddress address = node.remoteAddress();
+                ServerConfig config = ServerConfig.config();
+                int maxChannels = config.getMaxChannelPerChannelPool();
+                EventLoop executor = config.getThreadPoolStrategy().getBackendGroup().next();
+                ChannelPool pool = new MultiplexedChannelPool(
+                        address,
+                        maxChannels,
+                        executor,
+                        new ServiceChannelInitializer(node.protocol())
+                );
+                poolMap.put(node, pool);
+                return pool;
+            }
         }
     }
 
