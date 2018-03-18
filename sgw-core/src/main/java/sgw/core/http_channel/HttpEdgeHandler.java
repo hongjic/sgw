@@ -70,6 +70,8 @@ public class HttpEdgeHandler extends ChannelDuplexHandler {
                 HttpUtil.setKeepAlive(orderedResponse, false);
                 promise.addListener(ChannelFutureListener.CLOSE);
             }
+            else
+                HttpUtil.setKeepAlive(orderedResponse, true);
             chanCtx.removeRequestContext(chReqId);
             ctx.write(orderedResponse, promise);
         }
