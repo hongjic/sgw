@@ -15,7 +15,7 @@ public class ServerConfig extends HashMap<String, Object>{
     private static final int defaultPort = 8080;
     private static final int defaultMaxHttpContentLength = 1048576; // 1MB
     private static final int defaultMaxRequestPerHttpConnection = -1; // <=0 means unlimited
-    private static final int defaultMaxChannelPerChannelPool = 10;
+    private static final int defaultMaxChannelPerChannelPool = 300;
 
     private static ServerConfig config;
 

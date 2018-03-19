@@ -25,19 +25,19 @@ public class InvokeHandler extends ChannelInboundHandlerAdapter {
         assert msg instanceof ThriftCallWrapper;
         ThriftCallWrapper treq = (ThriftCallWrapper) msg;
         long chReqId = treq.channelMessageId();
-        HttpRequestContext reqCtx = chanCtx.getRequestContext(chReqId);
-        final RpcInvoker invoker = reqCtx.getInvoker();
+        final HttpRequestContext reqCtx = chanCtx.getRequestContext(chReqId);
+        RpcInvoker invoker = reqCtx.getInvoker();
         invoker.invokeAsync(treq).addListener((ChannelFuture f) -> {
             if (httpEventLoop.inEventLoop())
-                ifInvokeSuccess(ctx, f, invoker, reqCtx);
+                ifInvokeSuccess(ctx, f, reqCtx);
             else
-                httpEventLoop.execute(() -> ifInvokeSuccess(ctx, f, invoker, reqCtx));
+                httpEventLoop.execute(() -> ifInvokeSuccess(ctx, f, reqCtx));
         });
     }
 
-    private void ifInvokeSuccess(ChannelHandlerContext ctx, ChannelFuture future, RpcInvoker invoker, HttpRequestContext reqCtx) {
+    private void ifInvokeSuccess(ChannelHandlerContext ctx, ChannelFuture future, HttpRequestContext reqCtx) {
         assert httpEventLoop.inEventLoop();
-
+        RpcInvoker invoker = reqCtx.getInvoker();
         if (future.isSuccess())
             invoker.setState(RpcInvoker.InvokerState.INVOKED);
         else {

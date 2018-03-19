@@ -75,7 +75,7 @@ public class GatewayServer {
                     .channel(NioServerSocketChannel.class)
                     .childHandler(httpChannelInitializer)
                     .option(ChannelOption.SO_BACKLOG, 128)
-                    .option(ChannelOption.SO_KEEPALIVE, true);
+                    .childOption(ChannelOption.SO_KEEPALIVE, true);
 
             ChannelFuture f = b.bind(serverPort).sync();
             f.channel().closeFuture().sync();

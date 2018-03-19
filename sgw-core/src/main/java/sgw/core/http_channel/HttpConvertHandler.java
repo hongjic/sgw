@@ -101,6 +101,8 @@ public class HttpConvertHandler extends MessageToMessageCodec<ChannelOrderedHttp
     private ChannelOrderedHttpResponse convertThriftResulttoHttp(ChannelHandlerContext ctx, ThriftResultWrapper wrapper)
             throws Exception {
         HttpRequestContext reqCtx = chanCtx.getRequestContext(channelRequestId);
+        if (wrapper.getException() != null)
+            throw wrapper.getException();
         TBase result = wrapper.getResult();
         FullHttpResponseGenerator responseGenerator = reqCtx.getHttpResponseGenerator();
         logger.debug("Request {}: Converting thrift response to Http response by {}",

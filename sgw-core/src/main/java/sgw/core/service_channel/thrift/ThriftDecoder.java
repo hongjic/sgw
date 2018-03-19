@@ -5,6 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import org.apache.thrift.TApplicationException;
 import org.apache.thrift.TBase;
+import org.apache.thrift.TException;
 import org.apache.thrift.protocol.*;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TTransport;
@@ -59,18 +60,20 @@ public class ThriftDecoder extends ByteToMessageDecoder {
         ThriftRequestContext tReqCtx = chanCtx.getRequestContext(msg.seqid);
         logger.debug("Request {}: Received thrift suresponse, start decoding thrift response.",
                 tReqCtx.getHttpGlRequestId());
+        ThriftOrderedResponse response = new ThriftOrderedResponse();
         if (msg.type == TMessageType.EXCEPTION) {
             TApplicationException x = new TApplicationException();
             x.read(protocol);
             protocol.readMessageEnd();
-            throw x;
+            response.setChannelRequestId(msg.seqid);
+            response.setException(x);
+            return response;
         }
         ThriftInvokerDef invokerDef = (ThriftInvokerDef) tReqCtx.getRpcInvokerDef();
         TBase result = invokerDef.getThriftResultClazz().newInstance();
         result.read(protocol);
         protocol.readMessageEnd();
 
-        ThriftOrderedResponse response = new ThriftOrderedResponse();
         response.setResult(result);
         response.setChannelRequestId(msg.seqid);
         return response;
