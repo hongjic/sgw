@@ -81,3 +81,4 @@ gradlew.bat
 gradle/*
 
 docs/*
+/*.txt
