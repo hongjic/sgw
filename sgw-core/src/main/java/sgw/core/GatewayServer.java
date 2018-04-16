@@ -1,5 +1,6 @@
 package sgw.core;
 
+import org.apache.thrift.transport.TTransport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sgw.core.http_channel.HttpChannelInitializer;
@@ -51,7 +52,7 @@ public class GatewayServer {
 
     public void setRouter(Router router) {
         if (this.router != null) {
-            // this is necessary to resolve circuler reference.
+            // this is necessary to resolve circular reference.
             this.router.clear();
         }
         this.router = router;

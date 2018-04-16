@@ -40,7 +40,7 @@ public class ThriftEncoder extends MessageToByteEncoder<ThriftOrderedRequest> {
     private void writeSizeBuffer(ByteBuf buf) {
         int frameSize = buf.readableBytes() - 4;
         TFramedTransport.encodeFrameSize(frameSize, i32buf);
-        // this op doesnt change write/read index.
+        // this op doesn't change write/read index.
         buf.setBytes(0, i32buf);
     }
 
@@ -49,7 +49,7 @@ public class ThriftEncoder extends MessageToByteEncoder<ThriftOrderedRequest> {
         TMessage message = new TMessage(request.getMethodName(), TMessageType.CALL, (int) request.channelMessageId());
         String serviceName = request.getServiceName();
 
-        // Leave space to write frame size. Use the same Bytebuf to avoid data copy.
+        // Leave space to write frame size. Use the same buffer to avoid data copy.
         buf.setIndex(0, 4);
 
         // write frame buffer
